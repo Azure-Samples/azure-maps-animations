@@ -1,6 +1,6 @@
 ---
 page_type: sample
-description: A set of web UI controls that wrap the Azure Maps REST services. 
+description: A rich library of animations for use with the Azure Maps Web SDK.
 languages:
 - javascript
 - typescript
@@ -12,10 +12,6 @@ products:
 # Azure Maps Animation module
 
 A rich library of animations for use with the Azure Maps Web SDK.
-
-[Try out the demos]()
-
-![Animated gif of data animating on a map]()
 
 ## Features
 
@@ -41,7 +37,6 @@ A rich library of animations for use with the Azure Maps Web SDK.
 Download the project and copy the `atlas-animations` JavaScript file from the `dist` folder into your project. 
 
 See the [documentation](https://github.com/Azure-Samples/azure-maps-animations/tree/main/docs) for more details on a specific feature or take a look at one of the samples:
-
 
 [Animate a choropleth map](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20a%20choropleth%20map)
 <br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animate-a-choropleth-map.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate-a-choropleth-map)
