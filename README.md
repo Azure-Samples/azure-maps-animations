@@ -71,6 +71,9 @@ See the [documentation](https://github.com/Azure-Samples/azure-maps-animations/t
 [Animated tile layer](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animated%20tile%20layer)
 <br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animated-tile-layer.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animated-tile-layer)
 
+[Animated traffic flow](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animated%20traffic%20flow)
+<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animated-traffic-flow.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animated-traffic-flow)
+
 [Animation easings](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animation%20easings)
 <br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animation-easings.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animation-easings)
 
@@ -113,6 +116,7 @@ The following are some ideas to take this project further.
     - Time series animation control UI
 - Investigate
     - Add option to reduce noise of `heading` values in route path animation.
+    - JSON schema for saving and replaying animations.
 
 ## Related Projects
 

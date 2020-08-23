@@ -22,7 +22,7 @@ export class SimpleIntervalAnimation implements IPlayableAnimation {
      * @param numberOfIOntervals The number of intervals.
      * @param arguments Any additional arguments to pass to the callback function.
      */
-    constructor(intervalCallback: string | Function, delay: number, numberOfIOntervals?: number, ...args: any[]){
+    constructor(intervalCallback: string | Function, delay: number, numberOfIOntervals?: number, ...args: any[]) {
         this._id =  AnimationManager.instance.add(this);
         this._intervalCallback = intervalCallback;
         this._arguments = args;
@@ -51,6 +51,11 @@ export class SimpleIntervalAnimation implements IPlayableAnimation {
     /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
     public getDuration(): number {
         return this._numberOfIOntervals * this._delay;
+    }
+
+    /** Checks to see if the animaiton is playing.  */
+    public isPlaying(): boolean {
+        return this._start != null;
     }
 
     /** Pauses the animation. */

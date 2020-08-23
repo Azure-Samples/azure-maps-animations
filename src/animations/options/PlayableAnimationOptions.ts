@@ -1,4 +1,3 @@
-import { PlayableAnimationEvent } from '../PlayableAnimation';
 
  /** Base animation options. */
  export interface PlayableAnimationOptions {
@@ -20,6 +19,6 @@ import { PlayableAnimationEvent } from '../PlayableAnimation';
     /** A multiplier of the duration to speed up or down the animation. Default: 1 */
     speedMultiplier?: number;
 
-    /** Specifies if the animation should dispose itself once it has completed. Deault: false */
+    /** Specifies if the animation should dispose itself once it has completed. Default: false */
     disposeOnComplete?: boolean;
 }

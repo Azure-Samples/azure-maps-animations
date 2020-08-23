@@ -119,7 +119,9 @@ export class AnimationManager {
             if (t - this._lastTime >= this._minFrameRate) {
                 //Iterate backwards over queue incase the _onTriggerFrameAnimation asks to remove the animation. 
                 for (var i = this._queue.length - 1; i >= 0; i--) {
-                    this._queue[i]._onAnimationProgress(t);
+                    try {
+                        this._queue[i]._onAnimationProgress(t);
+                    } catch(e){ }
                 }
 
                 //Request the next frame of the animation.

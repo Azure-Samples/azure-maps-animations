@@ -15,6 +15,7 @@ import { RoutePathAnimationOptions } from './options/RoutePathAnimationOptions';
 import { RoutePathAnimation } from './internal/RoutePathAnimation';
 import { Easings } from './internal/Easings';
 import { FrameBasedAnimationTimer } from './FrameBasedAnimationTimer';
+import { MovingDashLineOptions } from './options/MovingDashLineOptions';
 
 /**
  * Adds an offset array property to point shapes and animates it's y value to simulate dropping. 
@@ -332,50 +333,16 @@ export function getEasingNames(): string[]{
     return Object.keys(Easings);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-interface MovingDashLineOptions {
-    /** The length of the dashed part of the line. Default: 2 */
-    dashLength: number;
-    
-    /** The length of the gap part of the line. Default: 2 */
-    gapLength: number;
-
-    /** Specifies if the animation should start automatically or wait for the play function to be called. Default: false */
-    autoPlay?: boolean;
-
-    /** The easing of the animaiton. Default: linear */
-    easing?: string | ((progress: number) => number);
-
-    /** Specifies if the animation should loop infinitely. Default: false */
-    loop?: boolean;
-
-    /** Specifies if the animation should play backwards. Default: false */
-    reverse?: boolean;
-
-    /** A multiplier of the duration to speed up or down the animation. Default: 1 */
-    speedMultiplier?: number;
-}
-
 /**
- * 
+ * Animates the dash-array of a line layer to make it appear to flow. 
  * The lineCap option of the layer must not be 'round'. If it is, it will be changed to 'butt'.
- * @param layer 
- * @param options 
+ * @param layer The layer to animate.
+ * @param options Animation options.
  */
 export function flowingDashedLine(layer: azmaps.layer.LineLayer, options?: MovingDashLineOptions): IPlayableAnimation {
     //From: https://stackoverflow.com/questions/43057469/dashed-line-animations-in-mapbox-gl-js
     
+    //Round lineCap will cause an error, change to butt cap.
     if(layer.getOptions().lineCap === 'round') {
         layer.setOptions({
             lineCap: 'butt'
@@ -410,7 +377,7 @@ export function flowingDashedLine(layer: azmaps.layer.LineLayer, options?: Movin
             c = dashLength;
             d = t * gapLength;          
         }
-console.log([a, b, c, d])
+
         layer.setOptions({
             strokeDashArray: [a, b, c, d]
         });        

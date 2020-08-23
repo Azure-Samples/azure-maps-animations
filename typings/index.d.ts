@@ -210,6 +210,14 @@ declare namespace atlas {
         export function extractRoutePoints(shapes: azmaps.data.FeatureCollection | azmaps.Shape | azmaps.data.Feature<azmaps.data.Geometry, any> | (azmaps.Shape | azmaps.data.Feature<azmaps.data.Geometry, any>)[], timestampProperty?: string): azmaps.data.Feature<azmaps.data.Point, any>[];
 
         /**
+         * Animates the dash-array of a line layer to make it appear to flow. 
+         * The lineCap option of the layer must not be 'round'. If it is, it will be changed to 'butt'.
+         * @param layer The layer to animate.
+         * @param options Animation options.
+         */
+        export function flowingDashedLine(layer: azmaps.layer.LineLayer, options?: MovingDashLineOptions): IPlayableAnimation;
+
+        /**
          * Animates the morphing of a shape from one geometry type or set of coordinates to another.
          * @param shape The shape to animate.
          * @param newGeometry The new geometry to turn the shape into.
@@ -406,7 +414,7 @@ declare namespace atlas {
         /** A multiplier of the duration to speed up or down the animation. Default: 1 */
         speedMultiplier?: number;
 
-        /** Specifies if the animation should dispose itself once it has completed. Deault: false */
+        /** Specifies if the animation should dispose itself once it has completed. Default: false */
         disposeOnComplete?: boolean;
     }
 
@@ -494,8 +502,15 @@ declare namespace atlas {
 
     /** An interface that all playable animations adhere to. */
     export interface IPlayableAnimation {
+        
+        /** Disposes the animation. */
+        dispose(): void;
+
         /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
         getDuration(): number;
+
+        /** Checks to see if the animaiton is playing.  */
+        isPlaying(): boolean;
 
         /** Pauses the animation. */
         pause(): void;
@@ -548,6 +563,29 @@ declare namespace atlas {
          * Array indices can be added as subproperties as well, for example "property/0".
          */
         propertyPath: string;
+    }
+
+    export interface MovingDashLineOptions {
+        /** The length of the dashed part of the line. Default: 4 */
+        dashLength: number;
+        
+        /** The length of the gap part of the line. Default: 4 */
+        gapLength: number;
+    
+        /** Specifies if the animation should start automatically or wait for the play function to be called. Default: false */
+        autoPlay?: boolean;
+    
+        /** The easing of the animaiton. Default: linear */
+        easing?: string | ((progress: number) => number);
+    
+        /** Specifies if the animation should loop infinitely. Default: false */
+        loop?: boolean;
+    
+        /** Specifies if the animation should play backwards. Default: false */
+        reverse?: boolean;
+    
+        /** A multiplier of the duration to speed up or down the animation. Default: 1 */
+        speedMultiplier?: number;
     }
 }
 

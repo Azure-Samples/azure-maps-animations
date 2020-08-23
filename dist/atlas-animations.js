@@ -828,7 +828,10 @@ MIT License
                 if (t - this._lastTime >= this._minFrameRate) {
                     //Iterate backwards over queue incase the _onTriggerFrameAnimation asks to remove the animation. 
                     for (var i = this._queue.length - 1; i >= 0; i--) {
-                        this._queue[i]._onAnimationProgress(t);
+                        try {
+                            this._queue[i]._onAnimationProgress(t);
+                        }
+                        catch (e) { }
                     }
                     //Request the next frame of the animation.
                     this._lastTime = t;
@@ -2285,6 +2288,10 @@ MIT License
         SimpleIntervalAnimation.prototype.getDuration = function () {
             return this._numberOfIOntervals * this._delay;
         };
+        /** Checks to see if the animaiton is playing.  */
+        SimpleIntervalAnimation.prototype.isPlaying = function () {
+            return this._start != null;
+        };
         /** Pauses the animation. */
         SimpleIntervalAnimation.prototype.pause = function () {
             this._start = null;
@@ -2851,13 +2858,14 @@ MIT License
         return Object.keys(Easings);
     }
     /**
-     *
+     * Animates the dash-array of a line layer to make it appear to flow.
      * The lineCap option of the layer must not be 'round'. If it is, it will be changed to 'butt'.
-     * @param layer
-     * @param options
+     * @param layer The layer to animate.
+     * @param options Animation options.
      */
     function flowingDashedLine(layer, options) {
         //From: https://stackoverflow.com/questions/43057469/dashed-line-animations-in-mapbox-gl-js
+        //Round lineCap will cause an error, change to butt cap.
         if (layer.getOptions().lineCap === 'round') {
             layer.setOptions({
                 lineCap: 'butt'
@@ -2887,7 +2895,6 @@ MIT License
                 c = dashLength;
                 d = t * gapLength;
             }
-            console.log([a, b, c, d]);
             layer.setOptions({
                 strokeDashArray: [a, b, c, d]
             });
@@ -2909,7 +2916,6 @@ MIT License
             var _this = _super.call(this) || this;
             _this._cancelAnimations = false;
             _this._isPlaying = false;
-            _this._duration = 0;
             _this._options = {
                 playType: 'together',
                 interval: 100,
@@ -2935,10 +2941,11 @@ MIT License
             this._animations = null;
             this._onComplete = null;
             this._isPlaying = null;
+            this._cancelAnimations = null;
         };
         /** Gets the duration of the animation. */
         GroupAnimation.prototype.getDuration = function () {
-            return this._duration;
+            return this._calculateDuration();
         };
         /** Gets the animation options. */
         GroupAnimation.prototype.getOptions = function () {
@@ -3135,7 +3142,7 @@ MIT License
                     duration = maxPostInterval + totalInterval;
                     break;
             }
-            this._duration = duration;
+            return duration;
         };
         return GroupAnimation;
     }(azmaps.internal.EventEmitter));

@@ -110,7 +110,6 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
         this._animation.reset();
     }
     
-
     /** Stops the animation. */
     public stop(): void {
         this._animation.stop();

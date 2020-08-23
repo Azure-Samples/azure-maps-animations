@@ -40,6 +40,7 @@ The following static methods are exposed on the `atlas.animations` namespace.
 | `drop(shapes: atlas.data.Point | atlas.data.Feature<atlas.data.Point, any> | atlas.Shape | (atlas.data.Point | atlas.data.Featuree<atlas.data.Point, any> | atlas.Shape)[], dataSource: atlas.source.DataSource, height?: number, options?: DropAnimationOptions)` | `PlayableAnimation` | Adds an offset array property to point shapes and animates it's y value to simulate dropping. Use with a symbol layer with the icon/text offset property set to `['get', 'offset']` and the opacity set to `['get', 'opacity']`. |
 | `dropMarkers(markers: atlas.HtmlMarker | atlas.HtmlMarker[], map?: atlas.Map, height?: number, options?: PlayableAnimationOptions)` | `PlayableAnimation` | Adds an offset to HtmlMarkers to animate it's `y` value to simulate dropping. Animation modifies `pixelOffset` value of HtmlMarkers. The animation has a default height of 200 pixels. |
 | `extractRoutePoints(shapes: azmaps.data.FeatureCollection | azmaps.Shape | azmaps.data.Feature<azmaps.data.Geometry, any> | (azmaps.Shape | azmaps.data.Feature<azmaps.data.Geometry, any>)[], timestampProperty?: string)` | `azmaps.data.Feature<azmaps.data.Point, any>[]` | Extracts points from a shapes or features that form a time based route and sorts them by time. Timestamps must parsable by the `atlas.math.parseTimestamp` function. All extracted points will have a `_timestamp` property that contains the `Date.getTime()` value. Features must be a Point, MultiPoint, or LineString and must contain properties that include timestamp information. If a timestamp property name is not specified, `_timestamp` will be used. If a feature collection is passed in, the first shape with a matching timestamp property will dictate what is extracted. If the first shape is a Point, all points in the colleciton with the timestamp property will be extracted. If the first shape is a LineString or MultiLineString;<br/<br/>- If it contains a timestamp property with an array of values the same length as coordinates in the feature, new Point features will be created from a combination of the coordinates and timestamp values.<br/>- If the feature has a `waypoints` property that contains an array of Point features with the timestamp property and the same number of coordinates, then these p will be extracted. |
+| `flowingDashedLine(layer: azmaps.layer.LineLayer, options?: MovingDashLineOptions)` | `IPlayableAnimation` | Animates the dash-array of a line layer to make it appear to flow. The lineCap option of the layer must not be 'round'. If it is, it will be changed to 'butt'. |
 | `getEasingFn(easing: string)` | `(progress: number) => number` | Retrieves an easing function by name, or null if a matching easing function is not found. |
 | `getEasingNames()` | `string[]` | Retrieves the name of all the built in easing functions. |
 | `interval(period: number, callback?: string | Function, numberOfIntervals?: number)` | `PlayableAnimation` | Creates a playable animation that triggers a callback function on constant interval.   |
@@ -92,7 +93,7 @@ Group animation handler.
 | `dispose()` | | Disposes the animation. |
 | `getDuration()` | `number` | Gets the duration of the animation. |
 | `getOptions()` | `GroupAnimationOptions` | Gets the animation options. |
-| `isPlaying()` | boolean | Checks to see if the animaiton is playing. |
+| `isPlaying()` | `boolean` | Checks to see if the animaiton is playing. |
 | `play()` | | Plays the group of animations. |
 | `reset()` | | Stops all animations and jumps back to the beginning of each animation. |
 | `stop()` |  | Stops all animations and jumps to the final state of each animation. |
@@ -111,7 +112,7 @@ An abstract class which defines an animation that supports a play function.
 | `dispose()` | | Disposes the animation. |
 | `getDuration()` | `number` | Gets the duration of the animation. |
 | `getOptions()` | `PlayableAnimationOptions` | Gets the animation options. |
-| `isPlaying()` | | Checks to see if the animaiton is playing. |
+| `isPlaying()` | `boolean` | Checks to see if the animaiton is playing. |
 | `pause()` | | Pauses the animation. |
 | `play()` |  | Plays the animation. |
 | `reset()` | | Stops the animation and jumps back to the beginning of the animation. |
@@ -161,7 +162,7 @@ A layer that can smoothly animate through an array of tile layers.
 | `getDuration()` | `number` | Gets the duration of the animation. |
 | `getOptions()` | `AnimatedTileLayerOptions` | Gets the options for the layer. |
 | `getPlayableAnimation()` | `FrameBasedAnimationTimer` | Gets the underlying frame based animation instance.  |
-| `isPlaying()` | | Checks to see if the animaiton is playing. |
+| `isPlaying()` | `boolean` | Checks to see if the animaiton is playing. |
 | `pause()` | | Pauses the animation. |
 | `play()` |  | Plays the animation. |
 | `reset()` | | Stops the animation and jumps back to the beginning the animation. |
@@ -210,6 +211,22 @@ Options for a group of animations.
 | `playType` | `'together'` \| `'sequential'` \| `'interval'` | How to play the animations. Default: `together` |
 | `interval` | `number` | If the `playType` is set to `interval`, this option specifies the time interval to start each animation in milliseconds. Default: `100`  |
 
+### IPlayableAnimation interface
+
+An interface that all playable animations adhere to.
+
+**Methods**
+
+| Name | Return type | Description |
+|------|-------------|-------------|
+| `dispose()` | | Disposes the animation. |
+| `getDuration()` | `number` | Gets the duration of the animation. |
+| `isPlaying()` | `boolean` | Checks to see if the animaiton is playing. |
+| `pause()` | | Pauses the animation. |
+| `play()` |  | Plays the animation. |
+| `reset()` | | Stops the animation and jumps back to the beginning of the animation. |
+| `stop()` |  | Stops the animation and jumps back to the end of the animation. |
+ 
 ### PathAnimationOptions interface
 
 Extends: `PlayableAnimationOptions` interface
@@ -248,6 +265,17 @@ Extends: `PathAnimationOptions` interface
 | `rotate` | `boolean` | Specifies if the map should rotate such that the bearing of the map faces the direction the map is moving. Default: `true`  |
 | `rotationOffset` | number | When rotate is set to true, the animation will follow the animation. An offset of 180 will cause the camera to lead the animation and look back. Default: `0`  |
 | `zoom` | number | A fixed zoom level to snap the map to on each animation frame. By default the maps current zoom level is used.  |
+
+### MovingDashLineOptions interface
+
+Extends: `PathAnimationOptions` interface
+
+**Properties**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `dashLength` | `number` | The length of the dashed part of the line. Default: `4` |
+| `gapLength` | `number` | The length of the gap part of the line. Default: `4` |
 
 ### PointPairValueInterpolation interface 
 

@@ -16,7 +16,6 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
     private _animations: (IPlayableAnimation | GroupAnimation)[];
     private _cancelAnimations = false;
     private _isPlaying = false;
-    private _duration = 0;
 
     private _options: GroupAnimationOptions = {
         playType: 'together',
@@ -57,11 +56,12 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
         this._animations = null;
         this._onComplete = null;
         this._isPlaying = null;
+        this._cancelAnimations = null;
     }
 
     /** Gets the duration of the animation. */
     public getDuration(): number {
-        return this._duration;
+        return this._calculateDuration();
     }
 
     /** Gets the animation options. */
@@ -261,7 +261,7 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
     }
 
     /** Calculates the total duration of the animation. */
-    private _calculateDuration(): void {
+    private _calculateDuration(): number {
         var maxPostInterval = 0;
         var intervalRemaining = 0;
         var max = 0;
@@ -295,6 +295,6 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
                 break;
         }
 
-        this._duration = duration;
+        return duration;
     }
 }

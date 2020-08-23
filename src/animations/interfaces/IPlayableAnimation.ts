@@ -10,8 +10,14 @@ export interface IPlayableAnimation {
     /** Internal callback function that is called when the animation is complete to notify dependancies. */
     _onComplete: () => void;
 
+    /** Disposes the animation. */
+    dispose(): void;
+
     /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
     getDuration(): number;
+
+    /** Checks to see if the animaiton is playing.  */
+    isPlaying(): boolean;
 
     /** Pauses the animation. */
     pause(): void;
