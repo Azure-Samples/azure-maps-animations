@@ -122,8 +122,8 @@ The following are some ideas to take this project further.
 
 **Open Azure Maps Web SDK modules**
 
-* [Azure Maps Sync Map module](https://github.com/Azure-Samples/azure-maps-sync-map)
-* [Azure Maps Services UI module](https://github.com/Azure-Samples/azure-maps-sync-map)
+* [Azure Maps Sync Map module](https://github.com/Azure-Samples/azure-maps-sync-maps)
+* [Azure Maps Services UI module](https://github.com/Azure-Samples/azure-maps-services-ui)
 
 **Additional projects**
 
