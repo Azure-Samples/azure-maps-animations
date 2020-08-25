@@ -46,5 +46,5 @@
     "license.md"
   ],
   "types": "typings/index.d.ts",
-  "main": "dist/atlas-animations.min.js"
+  "main": "dist/azure-maps-animations.min.js"
 }
