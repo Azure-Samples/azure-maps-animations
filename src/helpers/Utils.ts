@@ -1,6 +1,5 @@
 import * as azmaps from "azure-maps-control";
 import { PointPairValueInterpolation } from '../animations/interfaces/PointPairValueInterpolation';
-import { utimesSync } from 'fs';
 
 export class Utils {
     /**
