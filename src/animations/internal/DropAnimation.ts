@@ -35,12 +35,12 @@ export class DropAnimation extends PlayableAnimation {
             
             this._height = (typeof height === 'number' && height > 0) ? height : this._height;
             
-            var needsAdding = [];
-            var offset: number[];
+            let needsAdding = [];
+            let offset: number[];
 
-            var ds:azmaps.source.DataSource;
-            var map: azmaps.Map;
-            var markers: azmaps.HtmlMarker[] = [];
+            let ds:azmaps.source.DataSource;
+            let map: azmaps.Map;
+            let markers: azmaps.HtmlMarker[] = [];
             
             if(dataSourceOrMap instanceof azmaps.source.DataSource){
                 ds = dataSourceOrMap;
@@ -52,11 +52,11 @@ export class DropAnimation extends PlayableAnimation {
             }
 
             //Extract the offsets for each shape.
-            for (var i = 0, len = this._shapes.length; i < len; i++) {
+            for (let i = 0, len = this._shapes.length; i < len; i++) {
                 offset = null;
 
                 if(this._shapes[i] instanceof azmaps.Shape){
-                    var prop = (<azmaps.Shape>this._shapes[i]).getProperties();
+                    let prop = (<azmaps.Shape>this._shapes[i]).getProperties();
 
                     offset = prop['offset'];
                 } else {
@@ -87,7 +87,7 @@ export class DropAnimation extends PlayableAnimation {
                         needsAdding.push(this._shapes[i]);
                     }
                 } else {
-                    var m = <azmaps.HtmlMarker>this._shapes[i];
+                    let m = <azmaps.HtmlMarker>this._shapes[i];
                     (m).setOptions({ pixelOffset: offset, visible: false });
 
                     if(map && markers && markers.indexOf(m) === -1){
@@ -117,10 +117,11 @@ export class DropAnimation extends PlayableAnimation {
      * @param timestamp Timestamp from `performance.now()` that for the animation frame relative to the start time.
      */
     public onAnimationProgress(progress: number): any {
-        var offset: number[];
+        let offset: number[];
+        let y1: number;
 
-        for (var i = 0, len = this._shapes.length; i < len; i++) {
-            var y1 = this._y0[i] - this._height * (1 - progress);
+        for (let i = 0, len = this._shapes.length; i < len; i++) {
+            y1 = this._y0[i] - this._height * (1 - progress);
 
             offset = [this._x0[i], y1];
 

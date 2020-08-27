@@ -100,10 +100,12 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
         //Prevent any queued animations from starting.
         this._cancelAnimations = true;
 
+        let a = this._animations;
+
         //Stop all animations that are playing. 
-        if (this._animations && this._animations.length > 0) {
-            for (var i = 0; i < this._animations.length; i++) {
-                this._animations[i].reset();
+        if (a && a.length > 0) {
+            for (let i = 0; i < a.length; i++) {
+                a[i].reset();
             }
         }
 
@@ -115,10 +117,12 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
         //Prevent any queued animations from starting.
         this._cancelAnimations = true;
 
+        let a = this._animations;
+
         //Stop all animations that are playing. 
-        if (this._animations && this._animations.length > 0) {
-            for (var i = 0; i < this._animations.length; i++) {
-                this._animations[i].stop();
+        if (a && a.length > 0) {
+            for (let i = 0; i <a.length; i++) {
+                a[i].stop();
             }
         }
 
@@ -131,7 +135,7 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
      */
     public setOptions(options: GroupAnimationOptions): void {
         if(options){
-            var isPlaying = this._isPlaying;
+            let isPlaying = this._isPlaying;
 
             if(isPlaying){
                 this.stop();
@@ -169,12 +173,14 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
      * Plays an array of animations together at the same time.
      */
     private _playTogether(): void {
-        if (this._animations && this._animations.length > 0) {
+        let a = this._animations;
+
+        if (a && a.length > 0) {
             this._isPlaying = true;
 
-            for (var i = 0; i < this._animations.length; i++) {
-                if(i === this._animations.length - 1){
-                    this._animations[i]._onComplete = () => {
+            for (let i = 0; i < a.length; i++) {
+                if(i === a.length - 1){
+                    a[i]._onComplete = () => {
                         this._isPlaying = false;
 
                         //Animations complete.
@@ -182,7 +188,7 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
                     };
                 }
 
-                this._animations[i].play();
+                a[i].play();
             }
         }
     }
@@ -191,20 +197,22 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
      * Plays an array of animations sequentially. Looping of any animation will be disabled.
      */
     private _playSeq(): void {
-        if (this._animations && this._animations.length > 0) {
-            this._isPlaying = true;
-            var idx = 0;
+        let a = this._animations;
 
-            var callback = () => {
+        if (a && a.length > 0) {
+            this._isPlaying = true;
+            let idx = 0;
+
+            let callback = () => {
                 if(this._isPlaying){
                     if (idx > 0) {
                         //Only use the callback once.
-                        this._animations[idx - 1]._onComplete = null;
+                        a[idx - 1]._onComplete = null;
                     }
 
-                    if (!this._cancelAnimations && idx < this._animations.length) {
-                        this._animations[idx]._onComplete = callback;
-                        this._animations[idx].play();
+                    if (!this._cancelAnimations && idx < a.length) {
+                        a[idx]._onComplete = callback;
+                        a[idx].play();
                         idx++;
                     } else {
                         this._isPlaying = false;
@@ -225,10 +233,10 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
     private _playInterval(): void {
         if (this._animations && this._animations.length > 0) {
             this._isPlaying = true;
-            var self = this;
+            let self = this;
 
-            var idx = 0;
-            var p = function () {
+            let idx = 0;
+            let p = function () {
                 if(self._isPlaying){
                     if (!self._cancelAnimations && idx < self._animations.length) {
                         if(idx === self._animations.length - 1){
@@ -262,16 +270,18 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
 
     /** Calculates the total duration of the animation. */
     private _calculateDuration(): number {
-        var maxPostInterval = 0;
-        var intervalRemaining = 0;
-        var max = 0;
-        var sum = 0;
-        var totalInterval = this._options.interval * this._animations.length;
+        let maxPostInterval = 0;
+        let intervalRemaining = 0;
+        let max = 0;
+        let sum = 0;
+        let options = this._options;
+        let a = this._animations;
+        let totalInterval = options.interval * a.length;
 
-        this._animations.forEach((a, i, arr) => {
-            var d = a.getDuration();
+        a.forEach((a, i, arr) => {
+            let d = a.getDuration();
 
-            intervalRemaining = totalInterval - i * this._options.interval;
+            intervalRemaining = totalInterval - i * options.interval;
 
             if(intervalRemaining < d){
                 maxPostInterval = Math.max(maxPostInterval, d - intervalRemaining);
@@ -281,9 +291,9 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
             sum += d;
         });
 
-        var duration = 0;
+        let duration = 0;
 
-        switch(this._options.playType){
+        switch(options.playType){
             case 'together':
                 duration = max;
                 break;

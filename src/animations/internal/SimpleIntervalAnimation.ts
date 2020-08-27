@@ -82,7 +82,7 @@ export class SimpleIntervalAnimation implements IPlayableAnimation {
     
     public _onAnimationProgress(timestamp: number): void {
         if (this._start) {
-            var intervalIdx = Math.round((timestamp - this._start) / this._delay);
+            let intervalIdx = Math.round((timestamp - this._start) / this._delay);
 
             if(intervalIdx !== this._currentInterval){
                 this._currentInterval = intervalIdx;

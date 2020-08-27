@@ -11,7 +11,7 @@ export class AnimationManager {
     private _queue: IPlayableAnimation[] = [];
     private _lastTime: number;
     private _minFrameRate = 33; //roughly 30 frames per second is the fastest that the animation loop will update.
-    private stopped = true;
+    private _stopped = true;
     private _idCounter = 1234567890;
     private _idLookupTable: { [key: number]: IPlayableAnimation } = {};
 
@@ -30,16 +30,16 @@ export class AnimationManager {
 
     /** Stops all animations. */
     public disable(): void {
-        if (!this.stopped) {
-            this.stopped = true;
+        if (!this._stopped) {
+            this._stopped = true;
             cancelAnimationFrame(this._animation);
         }
     }
 
     /** Renables animations. Many will likely snap to the end of their animation. */
     public enable(): void {
-        if (this.stopped) {
-            this.stopped = false;
+        if (this._stopped) {
+            this._stopped = false;
             this._animation = requestAnimationFrame(this.animate.bind(this));
         }
     }
@@ -53,7 +53,7 @@ export class AnimationManager {
             animatable._id = this._getUuid();
         }
 
-        var animation = this._idLookupTable[animatable._id];
+        let animation = this._idLookupTable[animatable._id];
 
         //Only add the animation to the queue if it isn't already in it.
         if (!animation) {
@@ -113,12 +113,12 @@ export class AnimationManager {
 
     /** Loops through the queue and animates a frame for each animatable object. */
     private animate(): void {
-        if (!this.stopped) {
-            var t = performance.now();
+        if (!this._stopped) {
+            let t = performance.now();
 
             if (t - this._lastTime >= this._minFrameRate) {
                 //Iterate backwards over queue incase the _onTriggerFrameAnimation asks to remove the animation. 
-                for (var i = this._queue.length - 1; i >= 0; i--) {
+                for (let i = this._queue.length - 1; i >= 0; i--) {
                     try {
                         this._queue[i]._onAnimationProgress(t);
                     } catch(e){ }

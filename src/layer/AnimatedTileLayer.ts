@@ -40,7 +40,7 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
 
         this._id =  AnimationManager.instance.add(this);
 
-        var numFrames = 0;
+        let numFrames = 0;
 
         if(options) {
             this.setOptions(options);
@@ -170,7 +170,7 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
             this._options.visible = options.visible;
             
             if(options.visible){
-                var frameIdx = this._animation.getCurrentFrameIdx();
+                let frameIdx = this._animation.getCurrentFrameIdx();
                 if(options.tileLayerOptions.length > 0){
                     this._currentTileLayer.setOptions({ fadeDuration: 0, opacity: options.tileLayerOptions[frameIdx].opacity });
                 }
@@ -183,7 +183,7 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
 
         if(this._animation){
             //Check to see if the options contain any animation options.
-            var updateAnimation = false;
+            let updateAnimation = false;
 
             Object.keys(options).forEach(key => {
                 switch(key){
@@ -204,7 +204,7 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
 
     public onAdd(map: azmaps.Map): void {
         this._map = map;
-        this._map.layers.add(this._tileLayers, this);
+        map.layers.add(this._tileLayers, this);
     }
 
     public onRemove(): void {
@@ -245,18 +245,28 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
     ***************************/
 
     private _onFrame = (frameIdx: number): void => {
-        if(this._options.visible && this._options.tileLayerOptions && this._options.tileLayerOptions.length > 0 && frameIdx < this._options.tileLayerOptions.length) {
-            if( this._currentTileLayer){
+        let o = this._options;
+
+        if(o.visible && o.tileLayerOptions && o.tileLayerOptions.length > 0 && frameIdx < o.tileLayerOptions.length) {
+            let m = this._map['map'];
+            let ct = this._currentTileLayer;
+            let id;
+
+            if(ct){
+                id = ct.getId();
+
                 //Use lower level options to change the opacity for more smoothness.
-                this._map['map'].setPaintProperty(this._currentTileLayer.getId(), 'raster-opacity-transition', { duration: 0,  delay: 0});
-                this._map['map'].setPaintProperty(this._currentTileLayer.getId(), 'raster-opacity', 0);
+                m.setPaintProperty(id, 'raster-opacity-transition', { duration: 0,  delay: 0});
+                m.setPaintProperty(id, 'raster-opacity', 0);
             } 
 
-            this._currentTileLayer = this._tileLayers[frameIdx];
+            ct = this._tileLayers[frameIdx];
+            this._currentTileLayer = ct;
+            id = ct.getId();
             
             //Use lower level options to change the opacity for more smoothness.
-            this._map['map'].setPaintProperty(this._currentTileLayer.getId(), 'raster-opacity-transition', { duration: 0,  delay: 0});
-            this._map['map'].setPaintProperty(this._currentTileLayer.getId(), 'raster-opacity', this._options.tileLayerOptions[frameIdx].opacity);
+            m.setPaintProperty(id, 'raster-opacity-transition', { duration: 0,  delay: 0});
+            m.setPaintProperty(id, 'raster-opacity', o.tileLayerOptions[frameIdx].opacity);
         }
     }
 

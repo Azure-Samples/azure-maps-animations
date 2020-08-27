@@ -86,13 +86,15 @@ export class FrameBasedAnimationTimer extends PlayableAnimation {
     ////////////////////////////
 
     public onAnimationProgress(progress: number): { frameIdx: number } {
-        if(this._numberOfFrames > 0){
+        let nf = this._numberOfFrames;
+
+        if(nf > 0){
             //Need to get even spaced frame periods.
-            var frameIdx = Math.round(progress * this._numberOfFrames - 0.49999999999999999999999);
+            let frameIdx = Math.round(progress * nf - 0.49999999999999999999999);
 
             if(frameIdx !== this._currentFrameIdx) {
                 //When progress exactly 1, the frameIdx will be equal to the number of frames, but we want one less. This means that the last frame will be slightly longer (a couple of ms in a most cases).
-                if(frameIdx === this._numberOfFrames){
+                if(frameIdx === nf){
                     frameIdx--;
                 } else if(frameIdx < 0){
                     //Unlikely to happen, but an extra check to be safe. Ignore any frames that are negative.

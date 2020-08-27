@@ -7,7 +7,7 @@ export class RingInterpolator  {
 
     constructor(fromRing: azmaps.data.Position[], toRing: azmaps.data.Position[]) {
         //If positions arrays are identical, don't use interpolate progress as it may add artifacts.
-        var areEqual = true;
+        let areEqual = true;
 
         if(fromRing.length !== toRing.length){
             areEqual = false;

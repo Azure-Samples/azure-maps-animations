@@ -104,7 +104,8 @@ export abstract class PlayableAnimation extends azmaps.internal.EventEmitter<Pla
 
     /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
     public getDuration(): number {
-        return (this._options.loop)? Infinity : this._options.duration / this._options.speedMultiplier;
+        let o = this._options;
+        return (o.loop)? Infinity : o.duration / o.speedMultiplier;
     }
 
     /** Gets the animation options. */
@@ -199,7 +200,7 @@ export abstract class PlayableAnimation extends azmaps.internal.EventEmitter<Pla
             let hasAutoPlay = typeof options.autoPlay === 'boolean';
 
             if (hasDuration || hasAutoPlay) {
-                var isPlaying = this.isPlaying();
+                let isPlaying = this.isPlaying();
                 
                 if(isPlaying){
                     this.pause();
@@ -271,10 +272,10 @@ export abstract class PlayableAnimation extends azmaps.internal.EventEmitter<Pla
      */
     private _processFrame(): void {
         if(typeof this._id !== 'undefined'){
-            var progress = this._rawProgress || 0;
+            let progress = this._rawProgress || 0;
 
             //Animation reached the end.
-            if (this._rawProgress >= 1) {
+            if (progress >= 1) {
                 if(this._options.loop){
                     //Restart the animation.
                     this._rawProgress = 0;    
@@ -290,15 +291,15 @@ export abstract class PlayableAnimation extends azmaps.internal.EventEmitter<Pla
                 }
             }
 
-            var playProgress = (this._options.reverse)? 1 - this._rawProgress: this._rawProgress;
+            let playProgress = (this._options.reverse)? 1 - this._rawProgress: this._rawProgress;
 
             if (this._easing) {
                 progress = this._easing(playProgress);
             }
 
-            var state = this.onAnimationProgress(progress);
+            let state = this.onAnimationProgress(progress);
 
-            var eventArgs = Object.assign({
+            let eventArgs = Object.assign({
                 progress: playProgress,
                 easingProgress: progress,
                 animation: this

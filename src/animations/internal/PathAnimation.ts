@@ -59,40 +59,48 @@ export class PathAnimation extends MapPathPlayableAnaimation {
             super.setOptions(options);
         }
 
-        var isPlaying = this.isPlaying();
+        let isPlaying = this.isPlaying();
 
         if(isPlaying){
             this.pause();
         }
 
         if(this._positions){
-            this._totalLength = 0;
-            this._distances = [];
-            this._headings = [];
             
+            let tl = 0;
+            let distances = [];
+            let heading = [];
+            const pos = this._positions;
+
             //Calculate the distances and headings between the positions.
             if (this._pathOptions.geodesic) {
-                for (var i = 1, len = this._positions.length; i < len; i++) {
-                    var d = azmaps.math.getDistanceTo(this._positions[i - 1], this._positions[i]);
-                    this._totalLength += d;
-                    this._distances.push(d);
 
-                    var h = azmaps.math.getHeading(this._positions[i - 1], this._positions[i]);
-                    this._headings.push(h);
+                for (let i = 1, len = pos.length; i < len; i++) {
+                    let d = azmaps.math.getDistanceTo(pos[i - 1], pos[i]);
+                    tl += d;
+                    distances.push(d);
+
+                    let h = azmaps.math.getHeading(pos[i - 1], pos[i]);
+                    heading.push(h);
                 }
             } else {
                 //Calculate the mercator pixels of the coordinates at zoom level 21.
-                this._pixels = azmaps.math.mercatorPositionsToPixels(this._positions, 21);
+                let pixels = azmaps.math.mercatorPositionsToPixels(pos, 21);
+                this._pixels = pixels;
 
-                for (var i = 1, len = this._pixels.length; i < len; i++) {
-                    var d = azmaps.Pixel.getDistance(this._pixels[i - 1], this._pixels[i]);
-                    this._totalLength += d;
-                    this._distances.push(d);
+                for (let i = 1, len = pixels.length; i < len; i++) {
+                    let d = azmaps.Pixel.getDistance(pixels[i - 1], pixels[i]);
+                    tl += d;
+                    distances.push(d);
 
-                    var h = Utils.getPixelHeading(this._pixels[i - 1], this._pixels[i]);
-                    this._headings.push(h);
+                    let h = Utils.getPixelHeading(pixels[i - 1], pixels[i]);
+                    heading.push(h);
                 }
             }
+
+            this._totalLength = tl;
+            this._distances = distances;
+            this._headings = heading;
 
             if (this._pathOptions.captureMetadata) {
                 Utils.setMetadata(this._shape, { heading: this._headings[0] });
@@ -112,80 +120,89 @@ export class PathAnimation extends MapPathPlayableAnaimation {
         position: azmaps.data.Position,
         heading: number
     } {
-        var pos: azmaps.data.Position;
-        var heading: number;
+        let pos: azmaps.data.Position;
+        let heading: number;
+        let shape = this._shape;
+
+        const sourcePos = this._positions;
+        const headings = this._headings;
+        const distances = this._distances;
+        const pathOptions = this._pathOptions;
+        const totalLength = this._totalLength;
+        
 
         if (progress === 1) {
             //Animation is done.
-            pos = this._positions[this._positions.length - 1];
-            heading = (this._headings.length > 0) ? this._headings[this._headings.length - 1] : undefined;
+            pos = sourcePos[sourcePos.length - 1];
+            heading = (headings.length > 0) ? headings[headings.length - 1] : undefined;
 
-            if (this._pathOptions.map) {
+            if (pathOptions.map) {
                 this._setMapCamera(pos, heading, false);
             } 
 
-            Utils.setCoordinates(this._shape, pos, positions);
+            Utils.setCoordinates(shape, pos, positions);
         } else if (progress === 0) {
-            pos = this._positions[0];
-            heading = (this._headings.length > 0)? this._headings[0] : undefined;
+            pos = sourcePos[0];
+            heading = (headings.length > 0)? headings[0] : undefined;
 
-            if (this._pathOptions.map) {
+            if (pathOptions.map) {
                 this._setMapCamera(pos, heading, false);
             } 
 
-            Utils.setCoordinates(this._shape, pos, [pos, pos]);
+            Utils.setCoordinates(shape, pos, [pos, pos]);
         } else {
-            var dx = this._totalLength * progress;
+            var dx = totalLength * progress;
             var positions: azmaps.data.Position[] = null;
 
             //Calculate the coordinate part way between the origin and destination.
-            if (this._pathOptions.geodesic) {
+            if (pathOptions.geodesic) {
 
-                if (dx > this._totalLength) {
-                    heading = this._headings[this._headings.length - 1];
-                    positions = this._positions.slice(0);
+                if (dx > totalLength) {
+                    heading = headings[headings.length - 1];
+                    positions = sourcePos.slice(0);
                 } else if (dx < 0) {
-                    heading = this._headings[0];
-                    positions = this._positions.slice(0, 1);
+                    heading = headings[0];
+                    positions = sourcePos.slice(0, 1);
                 } else {
                     var travelled = 0;
 
-                    for (var i = 0; i < this._distances.length; i++) {
-                        if (travelled + this._distances[i] >= dx) {
-                            heading = this._headings[i];
-                            positions = this._positions.slice(0, i + 1);
-                            positions.push(azmaps.math.getDestination(this._positions[i], heading, dx - travelled));
+                    for (var i = 0; i < distances.length; i++) {
+                        if (travelled + distances[i] >= dx) {
+                            heading = headings[i];
+                            positions = sourcePos.slice(0, i + 1);
+                            positions.push(azmaps.math.getDestination(sourcePos[i], heading, dx - travelled));
                             break;
                         } else {
-                            travelled += this._distances[i];
+                            travelled += distances[i];
                         }
                     }
                 }
             } else {
                 var px = null;
+                const pixels = this._pixels;
 
-                if (dx > this._totalLength) {
-                    heading = this._headings[this._headings.length - 1];
-                    px = Utils.getPixelDestination(this._pixels[this._pixels.length - 1], heading, dx - this._totalLength);
-                    positions = this._positions.slice(0);
+                if (dx > totalLength) {
+                    heading = headings[headings.length - 1];
+                    px = Utils.getPixelDestination(pixels[pixels.length - 1], heading, dx - totalLength);
+                    positions = sourcePos.slice(0);
                     positions.push((azmaps.math.mercatorPixelsToPositions([px], 21)[0]));
                 } else if (dx < 0) {
-                    heading = this._headings[0];
-                    px = Utils.getPixelDestination(this._pixels[0], heading, dx);
-                    positions = this._positions.slice(0, 1);
+                    heading = headings[0];
+                    px = Utils.getPixelDestination(pixels[0], heading, dx);
+                    positions = sourcePos.slice(0, 1);
                     positions.push(azmaps.math.mercatorPixelsToPositions([px], 21)[0]);
                 } else {
                     var travelled = 0;
 
-                    for (var i = 0; i < this._distances.length; i++) {
-                        if (travelled + this._distances[i] >= dx) {
-                            heading = this._headings[i];
-                            px = Utils.getPixelDestination(this._pixels[i], heading, dx - travelled);
-                            positions = this._positions.slice(0, i + 1);
+                    for (var i = 0; i < distances.length; i++) {
+                        if (travelled + distances[i] >= dx) {
+                            heading = headings[i];
+                            px = Utils.getPixelDestination(pixels[i], heading, dx - travelled);
+                            positions = sourcePos.slice(0, i + 1);
                             positions.push(azmaps.math.mercatorPixelsToPositions([px], 21)[0]);
                             break;
                         } else {
-                            travelled += this._distances[i];
+                            travelled += distances[i];
                         }
                     }
                 }
@@ -194,17 +211,17 @@ export class PathAnimation extends MapPathPlayableAnaimation {
             if (positions && positions.length > 0) {
                 pos = positions[positions.length - 1];
 
-                if (this._pathOptions.map) {
+                if (pathOptions.map) {
                     //Animate to the next view.
                     this._setMapCamera(pos, heading, positions.length > 2);
                 } 
 
-                Utils.setCoordinates(this._shape, pos, positions);
+                Utils.setCoordinates(shape, pos, positions);
             }
         }
 
-        if (this._pathOptions.captureMetadata) {
-            Utils.setMetadata(this._shape, { heading: heading });
+        if (pathOptions.captureMetadata) {
+            Utils.setMetadata(shape, { heading: heading });
         }
 
         return {

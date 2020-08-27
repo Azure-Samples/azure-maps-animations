@@ -51,14 +51,14 @@ export class Utils {
     }
 
     public static getSuitableCoordinates(shape: azmaps.Shape | azmaps.HtmlMarker, coords: any): any {
-        var geomType = 'Point';
+        let geomType = 'Point';
 
         if(shape instanceof azmaps.Shape){
             geomType = shape.getType();
         } 
 
         if(coords){
-            var dim = Utils.getDimensions(coords);
+            let dim = Utils.getDimensions(coords);
 
             switch (geomType) {
                 case 'Point':
@@ -118,8 +118,8 @@ export class Utils {
     }
 
     public static getPixelHeading(origin: azmaps.Pixel, destination: azmaps.Pixel): number {
-        var dx = (destination[0] - origin[0]) * Math.PI / 180;
-        var dy = (origin[1] - destination[1]) * Math.PI / 180;
+        let dx = (destination[0] - origin[0]) * Math.PI / 180;
+        let dy = (origin[1] - destination[1]) * Math.PI / 180;
 
         return ((5 / 2 * Math.PI) - Math.atan2(dy, dx)) * 180 / Math.PI % 360;
     }
@@ -180,7 +180,7 @@ export class Utils {
      */
     public static setValue(obj: Object, propertyPath: string[], value: any): void {
         if (propertyPath.length > 1) {
-            var key = propertyPath.shift();
+            let key = propertyPath.shift();
             Utils.setValue(obj[key] =
                 Object.prototype.toString.call(obj[key]) === "[object Object]" ? obj[key]: {},
                 propertyPath,
@@ -258,7 +258,7 @@ export class Utils {
                     }
                 }
 
-                var val: any;                
+                let val: any;                
 
                 if(t1 === 'number' && t2 === 'number'){
                     switch(intpr.interpolation){
@@ -293,9 +293,9 @@ export class Utils {
     }
 
     public static extractRoutePointsFromFeature(feature: azmaps.data.Feature<azmaps.data.Geometry, any>, timestampProperty: string): azmaps.data.Feature<azmaps.data.Point, any>[] {
-        var pts = [];
-        var pt: azmaps.data.Feature<azmaps.data.Point, any>;
-        var t: Date;
+        let pts = [];
+        let pt: azmaps.data.Feature<azmaps.data.Point, any>;
+        let t: Date;
 
         switch(feature.geometry.type){
             case 'Point':
@@ -356,7 +356,7 @@ export class Utils {
     public static extractRoutePointFromPoint(feature: azmaps.data.Feature<azmaps.data.Point, any>, timestampProperty: string): azmaps.data.Feature<azmaps.data.Point, any> {
         //Check to see if the feature has the timestampProperty.
         if(feature.properties[timestampProperty]){
-            var t = azmaps.math.parseTimestamp(feature.properties[timestampProperty]);
+            let t = azmaps.math.parseTimestamp(feature.properties[timestampProperty]);
             
             if(typeof t !== 'undefined'){
                 feature.properties._timestamp = t.getTime();

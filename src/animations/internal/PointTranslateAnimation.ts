@@ -61,12 +61,12 @@ export class PointTranslateAnimation extends MapPathPlayableAnaimation {
                 this._heading = azmaps.math.getHeading(this._originPosition, this._destinationPosition);
             } else {
                 //Calculate the mercator pixels of the coordinates at zoom level 21.
-                var pixels = azmaps.math.mercatorPositionsToPixels([this._originPosition, this._destinationPosition], 21);
+                let pixels = azmaps.math.mercatorPositionsToPixels([this._originPosition, this._destinationPosition], 21);
                 this._originPixel = pixels[0];
 
                 //Ensure that the shortest path is taken between coordinates.
                 if (Math.abs(this._originPosition[0] - this._destinationPosition[0]) > 180) {
-                    var mapWidth = Math.pow(2, 21) * 512;
+                    let mapWidth = Math.pow(2, 21) * 512;
 
                     if (pixels[0][0] > pixels[1][0]) {
                         pixels[1][0] += mapWidth;
@@ -97,8 +97,8 @@ export class PointTranslateAnimation extends MapPathPlayableAnaimation {
         heading: number
     } {
         if(this._originPosition && this._destinationPosition && this._pathOptions){
-            var pos: azmaps.data.Position;
-            var animateCamera = false;
+            let pos: azmaps.data.Position;
+            let animateCamera = false;
             
             if (progress === 1) {
                 //Animation is done.
@@ -107,7 +107,7 @@ export class PointTranslateAnimation extends MapPathPlayableAnaimation {
                 //Restart animation.
                 pos = this._originPosition;
             } else {
-                var dx = this._dx * progress;
+                let dx = this._dx * progress;
 
                 //Calculate the coordinate part way between the origin and destination.
                 if (this._pathOptions.geodesic) {

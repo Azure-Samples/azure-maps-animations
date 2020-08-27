@@ -41,41 +41,45 @@ export abstract class MapPathPlayableAnaimation extends PlayableAnimation {
     /** Sets the options of the animation. */
     public setOptions(options: MapPathAnimationOptions): void {
         if (options) {
+            let no:MapPathAnimationOptions = {};
+
             if (typeof options.duration === 'number' && options.duration  > 0) {
-                this._pathOptions.duration = options.duration || this._pathOptions.duration;
+                no.duration = options.duration || this._pathOptions.duration;
             }
 
             if (typeof options.captureMetadata === 'boolean') {
-                this._pathOptions.captureMetadata = options.captureMetadata;
+                no.captureMetadata = options.captureMetadata;
             }
 
             if (typeof options.geodesic === 'boolean') {
-                this._pathOptions.geodesic = options.geodesic;
+                no.geodesic = options.geodesic;
             }
 
             if (typeof options.reverse === 'boolean') {
-                this._pathOptions.reverse = options.reverse;
+                no.reverse = options.reverse;
             }
 
             if (typeof options.pitch === 'number') {
-                this._pathOptions.pitch = options.pitch;
+                no.pitch = options.pitch;
             }
 
             if (typeof options.zoom === 'number') {
-                this._pathOptions.zoom = options.zoom;
+                no.zoom = options.zoom;
             }
 
             if (typeof options.rotate === 'boolean') {
-                this._pathOptions.rotate = options.rotate;
+                no.rotate = options.rotate;
             }
 
             if (typeof options.rotationOffset === 'number') {
-                this._pathOptions.rotationOffset = options.rotationOffset;
+                no.rotationOffset = options.rotationOffset;
             }
 
             if (options.map || options.map === null) {
-                this._pathOptions.map = options.map;
+                no.map = options.map;
             }
+
+            Object.assign(this._pathOptions, no);
 
             super.setOptions(options);
         }
@@ -87,7 +91,7 @@ export abstract class MapPathPlayableAnaimation extends PlayableAnimation {
  
     protected _setMapCamera(position: azmaps.data.Position, heading: number, animate: boolean): void {
         if (this._pathOptions.map && position) {
-            var cam = <azmaps.CameraOptions>{
+            let cam = <azmaps.CameraOptions>{
                 center: position
             };
 

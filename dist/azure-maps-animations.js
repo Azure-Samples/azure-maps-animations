@@ -643,7 +643,7 @@ MIT License
                             return null;
                         }
                     }
-                    var val;
+                    var val = void 0;
                     if (t1 === 'number' && t2 === 'number') {
                         switch (intpr.interpolation) {
                             case 'linear':
@@ -746,7 +746,7 @@ MIT License
             this._animation = null;
             this._queue = [];
             this._minFrameRate = 33; //roughly 30 frames per second is the fastest that the animation loop will update.
-            this.stopped = true;
+            this._stopped = true;
             this._idCounter = 1234567890;
             this._idLookupTable = {};
             this._lastTime = performance.now();
@@ -757,15 +757,15 @@ MIT License
         ***************************/
         /** Stops all animations. */
         AnimationManager.prototype.disable = function () {
-            if (!this.stopped) {
-                this.stopped = true;
+            if (!this._stopped) {
+                this._stopped = true;
                 cancelAnimationFrame(this._animation);
             }
         };
         /** Renables animations. Many will likely snap to the end of their animation. */
         AnimationManager.prototype.enable = function () {
-            if (this.stopped) {
-                this.stopped = false;
+            if (this._stopped) {
+                this._stopped = false;
                 this._animation = requestAnimationFrame(this.animate.bind(this));
             }
         };
@@ -823,7 +823,7 @@ MIT License
         ***************************/
         /** Loops through the queue and animates a frame for each animatable object. */
         AnimationManager.prototype.animate = function () {
-            if (!this.stopped) {
+            if (!this._stopped) {
                 var t = performance.now();
                 if (t - this._lastTime >= this._minFrameRate) {
                     //Iterate backwards over queue incase the _onTriggerFrameAnimation asks to remove the animation. 
@@ -898,7 +898,8 @@ MIT License
         };
         /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
         PlayableAnimation.prototype.getDuration = function () {
-            return (this._options.loop) ? Infinity : this._options.duration / this._options.speedMultiplier;
+            var o = this._options;
+            return (o.loop) ? Infinity : o.duration / o.speedMultiplier;
         };
         /** Gets the animation options. */
         PlayableAnimation.prototype.getOptions = function () {
@@ -1035,7 +1036,7 @@ MIT License
             if (typeof this._id !== 'undefined') {
                 var progress = this._rawProgress || 0;
                 //Animation reached the end.
-                if (this._rawProgress >= 1) {
+                if (progress >= 1) {
                     if (this._options.loop) {
                         //Restart the animation.
                         this._rawProgress = 0;
@@ -1131,12 +1132,13 @@ MIT License
         // Abstract method override
         ////////////////////////////
         FrameBasedAnimationTimer.prototype.onAnimationProgress = function (progress) {
-            if (this._numberOfFrames > 0) {
+            var nf = this._numberOfFrames;
+            if (nf > 0) {
                 //Need to get even spaced frame periods.
-                var frameIdx = Math.round(progress * this._numberOfFrames - 0.49999999999999999999999);
+                var frameIdx = Math.round(progress * nf - 0.49999999999999999999999);
                 if (frameIdx !== this._currentFrameIdx) {
                     //When progress exactly 1, the frameIdx will be equal to the number of frames, but we want one less. This means that the last frame will be slightly longer (a couple of ms in a most cases).
-                    if (frameIdx === this._numberOfFrames) {
+                    if (frameIdx === nf) {
                         frameIdx--;
                     }
                     else if (frameIdx < 0) {
@@ -1190,16 +1192,23 @@ MIT License
             * Private functions
             ***************************/
             _this._onFrame = function (frameIdx) {
-                if (_this._options.visible && _this._options.tileLayerOptions && _this._options.tileLayerOptions.length > 0 && frameIdx < _this._options.tileLayerOptions.length) {
-                    if (_this._currentTileLayer) {
+                var o = _this._options;
+                if (o.visible && o.tileLayerOptions && o.tileLayerOptions.length > 0 && frameIdx < o.tileLayerOptions.length) {
+                    var m = _this._map['map'];
+                    var ct = _this._currentTileLayer;
+                    var id = void 0;
+                    if (ct) {
+                        id = ct.getId();
                         //Use lower level options to change the opacity for more smoothness.
-                        _this._map['map'].setPaintProperty(_this._currentTileLayer.getId(), 'raster-opacity-transition', { duration: 0, delay: 0 });
-                        _this._map['map'].setPaintProperty(_this._currentTileLayer.getId(), 'raster-opacity', 0);
+                        m.setPaintProperty(id, 'raster-opacity-transition', { duration: 0, delay: 0 });
+                        m.setPaintProperty(id, 'raster-opacity', 0);
                     }
-                    _this._currentTileLayer = _this._tileLayers[frameIdx];
+                    ct = _this._tileLayers[frameIdx];
+                    _this._currentTileLayer = ct;
+                    id = ct.getId();
                     //Use lower level options to change the opacity for more smoothness.
-                    _this._map['map'].setPaintProperty(_this._currentTileLayer.getId(), 'raster-opacity-transition', { duration: 0, delay: 0 });
-                    _this._map['map'].setPaintProperty(_this._currentTileLayer.getId(), 'raster-opacity', _this._options.tileLayerOptions[frameIdx].opacity);
+                    m.setPaintProperty(id, 'raster-opacity-transition', { duration: 0, delay: 0 });
+                    m.setPaintProperty(id, 'raster-opacity', o.tileLayerOptions[frameIdx].opacity);
                 }
             };
             _this._id = AnimationManager.instance.add(_this);
@@ -1311,9 +1320,9 @@ MIT License
             if (typeof options.visible === 'boolean') {
                 this._options.visible = options.visible;
                 if (options.visible) {
-                    var frameIdx = this._animation.getCurrentFrameIdx();
+                    var frameIdx_1 = this._animation.getCurrentFrameIdx();
                     if (options.tileLayerOptions.length > 0) {
-                        this._currentTileLayer.setOptions({ fadeDuration: 0, opacity: options.tileLayerOptions[frameIdx].opacity });
+                        this._currentTileLayer.setOptions({ fadeDuration: 0, opacity: options.tileLayerOptions[frameIdx_1].opacity });
                     }
                 }
                 else {
@@ -1324,25 +1333,25 @@ MIT License
             }
             if (this._animation) {
                 //Check to see if the options contain any animation options.
-                var updateAnimation = false;
+                var updateAnimation_1 = false;
                 Object.keys(options).forEach(function (key) {
                     switch (key) {
                         case 'tileLayerOptions':
                         case 'visible':
                             break;
                         default:
-                            updateAnimation = true;
+                            updateAnimation_1 = true;
                             break;
                     }
                 });
-                if (updateAnimation) {
+                if (updateAnimation_1) {
                     this._animation.setOptions(options);
                 }
             }
         };
         AnimatedTileLayer.prototype.onAdd = function (map) {
             this._map = map;
-            this._map.layers.add(this._tileLayers, this);
+            map.layers.add(this._tileLayers, this);
         };
         AnimatedTileLayer.prototype.onRemove = function () {
             this._map.layers.remove(this._tileLayers);
@@ -1410,9 +1419,9 @@ MIT License
                 _this._y0 = [];
                 _this._height = (typeof height === 'number' && height > 0) ? height : _this._height;
                 var needsAdding = [];
-                var offset;
-                var ds;
-                var map;
+                var offset = void 0;
+                var ds = void 0;
+                var map = void 0;
                 var markers = [];
                 if (dataSourceOrMap instanceof azmaps.source.DataSource) {
                     ds = dataSourceOrMap;
@@ -1481,8 +1490,9 @@ MIT License
          */
         DropAnimation.prototype.onAnimationProgress = function (progress) {
             var offset;
+            var y1;
             for (var i = 0, len = this._shapes.length; i < len; i++) {
-                var y1 = this._y0[i] - this._height * (1 - progress);
+                y1 = this._y0[i] - this._height * (1 - progress);
                 offset = [this._x0[i], y1];
                 if (this._shapes[i] instanceof azmaps.Shape) {
                     var s = this._shapes[i];
@@ -1532,33 +1542,35 @@ MIT License
         /** Sets the options of the animation. */
         MapPathPlayableAnaimation.prototype.setOptions = function (options) {
             if (options) {
+                var no = {};
                 if (typeof options.duration === 'number' && options.duration > 0) {
-                    this._pathOptions.duration = options.duration || this._pathOptions.duration;
+                    no.duration = options.duration || this._pathOptions.duration;
                 }
                 if (typeof options.captureMetadata === 'boolean') {
-                    this._pathOptions.captureMetadata = options.captureMetadata;
+                    no.captureMetadata = options.captureMetadata;
                 }
                 if (typeof options.geodesic === 'boolean') {
-                    this._pathOptions.geodesic = options.geodesic;
+                    no.geodesic = options.geodesic;
                 }
                 if (typeof options.reverse === 'boolean') {
-                    this._pathOptions.reverse = options.reverse;
+                    no.reverse = options.reverse;
                 }
                 if (typeof options.pitch === 'number') {
-                    this._pathOptions.pitch = options.pitch;
+                    no.pitch = options.pitch;
                 }
                 if (typeof options.zoom === 'number') {
-                    this._pathOptions.zoom = options.zoom;
+                    no.zoom = options.zoom;
                 }
                 if (typeof options.rotate === 'boolean') {
-                    this._pathOptions.rotate = options.rotate;
+                    no.rotate = options.rotate;
                 }
                 if (typeof options.rotationOffset === 'number') {
-                    this._pathOptions.rotationOffset = options.rotationOffset;
+                    no.rotationOffset = options.rotationOffset;
                 }
                 if (options.map || options.map === null) {
-                    this._pathOptions.map = options.map;
+                    no.map = options.map;
                 }
+                Object.assign(this._pathOptions, no);
                 _super.prototype.setOptions.call(this, options);
             }
         };
@@ -1671,7 +1683,7 @@ MIT License
          */
         PointTranslateAnimation.prototype.onAnimationProgress = function (progress) {
             if (this._originPosition && this._destinationPosition && this._pathOptions) {
-                var pos;
+                var pos = void 0;
                 var animateCamera = false;
                 if (progress === 1) {
                     //Animation is done.
@@ -1748,30 +1760,35 @@ MIT License
                 this.pause();
             }
             if (this._positions) {
-                this._totalLength = 0;
-                this._distances = [];
-                this._headings = [];
+                var tl = 0;
+                var distances = [];
+                var heading = [];
+                var pos = this._positions;
                 //Calculate the distances and headings between the positions.
                 if (this._pathOptions.geodesic) {
-                    for (var i = 1, len = this._positions.length; i < len; i++) {
-                        var d = azmaps.math.getDistanceTo(this._positions[i - 1], this._positions[i]);
-                        this._totalLength += d;
-                        this._distances.push(d);
-                        var h = azmaps.math.getHeading(this._positions[i - 1], this._positions[i]);
-                        this._headings.push(h);
+                    for (var i = 1, len = pos.length; i < len; i++) {
+                        var d = azmaps.math.getDistanceTo(pos[i - 1], pos[i]);
+                        tl += d;
+                        distances.push(d);
+                        var h = azmaps.math.getHeading(pos[i - 1], pos[i]);
+                        heading.push(h);
                     }
                 }
                 else {
                     //Calculate the mercator pixels of the coordinates at zoom level 21.
-                    this._pixels = azmaps.math.mercatorPositionsToPixels(this._positions, 21);
-                    for (var i = 1, len = this._pixels.length; i < len; i++) {
-                        var d = azmaps.Pixel.getDistance(this._pixels[i - 1], this._pixels[i]);
-                        this._totalLength += d;
-                        this._distances.push(d);
-                        var h = Utils.getPixelHeading(this._pixels[i - 1], this._pixels[i]);
-                        this._headings.push(h);
+                    var pixels = azmaps.math.mercatorPositionsToPixels(pos, 21);
+                    this._pixels = pixels;
+                    for (var i = 1, len = pixels.length; i < len; i++) {
+                        var d = azmaps.Pixel.getDistance(pixels[i - 1], pixels[i]);
+                        tl += d;
+                        distances.push(d);
+                        var h = Utils.getPixelHeading(pixels[i - 1], pixels[i]);
+                        heading.push(h);
                     }
                 }
+                this._totalLength = tl;
+                this._distances = distances;
+                this._headings = heading;
                 if (this._pathOptions.captureMetadata) {
                     Utils.setMetadata(this._shape, { heading: this._headings[0] });
                 }
@@ -1787,92 +1804,99 @@ MIT License
         PathAnimation.prototype.onAnimationProgress = function (progress) {
             var pos;
             var heading;
+            var shape = this._shape;
+            var sourcePos = this._positions;
+            var headings = this._headings;
+            var distances = this._distances;
+            var pathOptions = this._pathOptions;
+            var totalLength = this._totalLength;
             if (progress === 1) {
                 //Animation is done.
-                pos = this._positions[this._positions.length - 1];
-                heading = (this._headings.length > 0) ? this._headings[this._headings.length - 1] : undefined;
-                if (this._pathOptions.map) {
+                pos = sourcePos[sourcePos.length - 1];
+                heading = (headings.length > 0) ? headings[headings.length - 1] : undefined;
+                if (pathOptions.map) {
                     this._setMapCamera(pos, heading, false);
                 }
-                Utils.setCoordinates(this._shape, pos, positions);
+                Utils.setCoordinates(shape, pos, positions);
             }
             else if (progress === 0) {
-                pos = this._positions[0];
-                heading = (this._headings.length > 0) ? this._headings[0] : undefined;
-                if (this._pathOptions.map) {
+                pos = sourcePos[0];
+                heading = (headings.length > 0) ? headings[0] : undefined;
+                if (pathOptions.map) {
                     this._setMapCamera(pos, heading, false);
                 }
-                Utils.setCoordinates(this._shape, pos, [pos, pos]);
+                Utils.setCoordinates(shape, pos, [pos, pos]);
             }
             else {
-                var dx = this._totalLength * progress;
+                var dx = totalLength * progress;
                 var positions = null;
                 //Calculate the coordinate part way between the origin and destination.
-                if (this._pathOptions.geodesic) {
-                    if (dx > this._totalLength) {
-                        heading = this._headings[this._headings.length - 1];
-                        positions = this._positions.slice(0);
+                if (pathOptions.geodesic) {
+                    if (dx > totalLength) {
+                        heading = headings[headings.length - 1];
+                        positions = sourcePos.slice(0);
                     }
                     else if (dx < 0) {
-                        heading = this._headings[0];
-                        positions = this._positions.slice(0, 1);
+                        heading = headings[0];
+                        positions = sourcePos.slice(0, 1);
                     }
                     else {
                         var travelled = 0;
-                        for (var i = 0; i < this._distances.length; i++) {
-                            if (travelled + this._distances[i] >= dx) {
-                                heading = this._headings[i];
-                                positions = this._positions.slice(0, i + 1);
-                                positions.push(azmaps.math.getDestination(this._positions[i], heading, dx - travelled));
+                        for (var i = 0; i < distances.length; i++) {
+                            if (travelled + distances[i] >= dx) {
+                                heading = headings[i];
+                                positions = sourcePos.slice(0, i + 1);
+                                positions.push(azmaps.math.getDestination(sourcePos[i], heading, dx - travelled));
                                 break;
                             }
                             else {
-                                travelled += this._distances[i];
+                                travelled += distances[i];
                             }
                         }
                     }
                 }
                 else {
                     var px = null;
-                    if (dx > this._totalLength) {
-                        heading = this._headings[this._headings.length - 1];
-                        px = Utils.getPixelDestination(this._pixels[this._pixels.length - 1], heading, dx - this._totalLength);
-                        positions = this._positions.slice(0);
+                    var pixels = this._pixels;
+                    if (dx > totalLength) {
+                        heading = headings[headings.length - 1];
+                        px = Utils.getPixelDestination(pixels[pixels.length - 1], heading, dx - totalLength);
+                        positions = sourcePos.slice(0);
                         positions.push((azmaps.math.mercatorPixelsToPositions([px], 21)[0]));
                     }
                     else if (dx < 0) {
-                        heading = this._headings[0];
-                        px = Utils.getPixelDestination(this._pixels[0], heading, dx);
-                        positions = this._positions.slice(0, 1);
+                        heading = headings[0];
+                        px = Utils.getPixelDestination(pixels[0], heading, dx);
+                        positions = sourcePos.slice(0, 1);
                         positions.push(azmaps.math.mercatorPixelsToPositions([px], 21)[0]);
                     }
                     else {
                         var travelled = 0;
-                        for (var i = 0; i < this._distances.length; i++) {
-                            if (travelled + this._distances[i] >= dx) {
-                                heading = this._headings[i];
-                                px = Utils.getPixelDestination(this._pixels[i], heading, dx - travelled);
-                                positions = this._positions.slice(0, i + 1);
+                        for (var i = 0; i < distances.length; i++) {
+                            if (travelled + distances[i] >= dx) {
+                                heading = headings[i];
+                                px = Utils.getPixelDestination(pixels[i], heading, dx - travelled);
+                                positions = sourcePos.slice(0, i + 1);
                                 positions.push(azmaps.math.mercatorPixelsToPositions([px], 21)[0]);
                                 break;
                             }
                             else {
-                                travelled += this._distances[i];
+                                travelled += distances[i];
                             }
                         }
                     }
                 }
                 if (positions && positions.length > 0) {
                     pos = positions[positions.length - 1];
-                    if (this._pathOptions.map) {
+                    if (pathOptions.map) {
                         //Animate to the next view.
                         this._setMapCamera(pos, heading, positions.length > 2);
                     }
-                    Utils.setCoordinates(this._shape, pos, positions);
+                    Utils.setCoordinates(shape, pos, positions);
                 }
             }
-            if (this._pathOptions.captureMetadata) {
-                Utils.setMetadata(this._shape, { heading: heading });
+            if (pathOptions.captureMetadata) {
+                Utils.setMetadata(shape, { heading: heading });
             }
             return {
                 position: pos,
@@ -1942,32 +1966,34 @@ MIT License
             this._initInterpolators();
         }
         SimpleGeometryInterpolator.prototype.interpolate = function (progress) {
+            var fg = this._fromGeometry;
+            var tg = this._toGeometry;
             if (this._areSame) {
-                return this._toGeometry;
+                return tg;
             }
             if (progress === 0) {
-                return this._fromGeometry;
+                return fg;
             }
             else if (progress === 1) {
-                return this._toGeometry;
+                return tg;
             }
             var c = this._runInterpolators(progress);
-            var g = { type: this._toGeometry.type };
-            switch (this._toGeometry.type) {
+            var g = { type: tg.type };
+            switch (tg.type) {
                 case 'Point':
                     //If morphing to a point, keep the from shape for as long a possible.
-                    if (this._fromGeometry.type === 'LineString' ||
-                        this._fromGeometry.type === 'MultiPoint') {
+                    if (fg.type === 'LineString' ||
+                        fg.type === 'MultiPoint') {
                         //Grab sample points.
                         g = {
-                            type: this._fromGeometry.type,
-                            coordinates: this._sampleMultiPoint(c, this._fromGeometry.coordinates.length)
+                            type: fg.type,
+                            coordinates: this._sampleMultiPoint(c, fg.coordinates.length)
                         };
                     }
-                    else if (this._fromGeometry.type === 'Polygon' ||
-                        this._fromGeometry.type === 'MultiLineString') {
+                    else if (fg.type === 'Polygon' ||
+                        fg.type === 'MultiLineString') {
                         g = {
-                            type: this._fromGeometry.type,
+                            type: fg.type,
                             coordinates: c
                         };
                     }
@@ -1977,8 +2003,8 @@ MIT License
                     break;
                 case 'LineString':
                     //Remove extra points when transitioning from a polygon.
-                    if (this._fromGeometry.type === 'Polygon' && this._fromGeometry.coordinates.length > this._toGeometry.coordinates.length) {
-                        var numRemove = Math.floor(c[0].length / (this._toGeometry.coordinates.length - 1));
+                    if (fg.type === 'Polygon' && fg.coordinates.length > tg.coordinates.length) {
+                        var numRemove = Math.floor(c[0].length / (tg.coordinates.length - 1));
                         for (var i = numRemove; i >= 0; i--) {
                             c[0].pop();
                         }
@@ -1987,14 +2013,14 @@ MIT License
                     break;
                 case 'MultiPoint':
                     //If morphing to a MultiPoint, keep the from shape for as long a possible.
-                    if (this._fromGeometry.type === 'Point') {
+                    if (fg.type === 'Point') {
                         //Grab sample points.                   
-                        g.coordinates = this._sampleMultiPoint(c, this._toGeometry.coordinates.length);
+                        g.coordinates = this._sampleMultiPoint(c, tg.coordinates.length);
                     }
-                    else if (this._fromGeometry.type !== 'MultiPoint') {
+                    else if (fg.type !== 'MultiPoint') {
                         g = {
-                            type: this._fromGeometry.type,
-                            coordinates: (this._fromGeometry.type === 'LineString') ? c[0] : c
+                            type: fg.type,
+                            coordinates: (fg.type === 'LineString') ? c[0] : c
                         };
                     }
                     else {
@@ -2009,65 +2035,70 @@ MIT License
             return g;
         };
         SimpleGeometryInterpolator.prototype._initInterpolators = function () {
-            if (!this._areSame && this._fromGeometry && this._fromGeometry.coordinates.length > 0 &&
-                this._toGeometry && this._toGeometry.coordinates.length > 0) {
+            var fg = this._fromGeometry;
+            var tg = this._toGeometry;
+            if (!this._areSame && fg && fg.coordinates.length > 0 &&
+                tg && tg.coordinates.length > 0) {
                 var fromCoords = [];
                 var toCoords = [];
-                switch (this._fromGeometry.type) {
+                switch (fg.type) {
                     case 'Point':
-                        var fc = this._fromGeometry.coordinates;
+                        var fc = fg.coordinates;
                         fromCoords = [[fc, fc, fc]];
                         break;
                     case 'LineString':
                     case 'MultiPoint':
-                        var fc2 = this._fromGeometry.coordinates;
+                        var fc2 = fg.coordinates;
                         fromCoords = [fc2];
                         break;
                     case 'Polygon':
                     case 'MultiLineString':
-                        if (typeof this._fromGeometry.coordinates[0] === 'number') {
-                            fromCoords = [this._fromGeometry.coordinates];
+                        if (typeof fg.coordinates[0] === 'number') {
+                            fromCoords = [fg.coordinates];
                         }
                         else {
-                            fromCoords = this._fromGeometry.coordinates;
+                            fromCoords = fg.coordinates;
                         }
                         break;
                 }
-                switch (this._toGeometry.type) {
+                switch (tg.type) {
                     case 'Point':
-                        var tc = this._toGeometry.coordinates;
+                        var tc = tg.coordinates;
                         toCoords = [[tc, tc, tc]];
                         break;
                     case 'LineString':
                     case 'MultiPoint':
-                        var tc2 = this._toGeometry.coordinates;
+                        var tc2 = tg.coordinates;
                         toCoords = [tc2];
                         break;
                     case 'Polygon':
                     case 'MultiLineString':
-                        if (typeof this._toGeometry.coordinates[0] === 'number') {
-                            toCoords = [this._toGeometry.coordinates];
+                        if (typeof tg.coordinates[0] === 'number') {
+                            toCoords = [tg.coordinates];
                         }
                         else {
-                            toCoords = this._toGeometry.coordinates;
+                            toCoords = tg.coordinates;
                         }
                         break;
                 }
+                var i = void 0;
+                var len = toCoords.length;
                 //Fill gap of geometries transitioning from.
                 if (fromCoords.length < toCoords.length) {
-                    for (var i = fromCoords.length, len = toCoords.length; i < len; i++) {
+                    for (i = fromCoords.length; i < len; i++) {
                         fromCoords.push([fromCoords[0][0], fromCoords[0][0], fromCoords[0][0]]);
                     }
                 }
-                for (var i = 0; i < toCoords.length; i++) {
+                for (i = 0; i < len; i++) {
                     this._interpolators.push(new RingInterpolator(fromCoords[i], toCoords[i]));
                 }
             }
         };
         SimpleGeometryInterpolator.prototype._runInterpolators = function (progress) {
             var c = [];
-            for (var i = 0; i < this._interpolators.length; i++) {
-                c.push(this._interpolators[i].interpolate(progress));
+            var int = this._interpolators;
+            for (var i = 0; i < int.length; i++) {
+                c.push(int[i].interpolate(progress));
             }
             return c;
         };
@@ -2226,17 +2257,18 @@ MIT License
             if (this._pathOptions.map) {
                 this._setMapCamera(newCenter, heading, true);
             }
+            var s = this._shape;
             if (this._pathOptions.captureMetadata) {
-                this._shape.addProperty('heading', heading);
+                s.addProperty('heading', heading);
             }
             //If shape is a circle and geometry is a Point, just set coordinates.
-            if (this._shape.isCircle() && g.type === 'Point') {
-                this._shape.setCoordinates(g.coordinates);
+            if (s.isCircle() && g.type === 'Point') {
+                s.setCoordinates(g.coordinates);
             }
             else {
                 //TODO: Update with supported function in future.
-                this._shape['data'].geometry.type = g.type;
-                this._shape.setCoordinates(g.coordinates);
+                s['data'].geometry.type = g.type;
+                s.setCoordinates(g.coordinates);
             }
             return {
                 position: newCenter,
@@ -2426,95 +2458,109 @@ MIT License
          * @param progress The progress of the animation where 0 is start and 1 is the end.
          */
         RoutePathAnimation.prototype.onAnimationProgress = function (progress) {
-            var _this = this;
             if (this._positions && this._positions.length > 1) {
                 var state = {};
-                var idx = 0;
-                var props;
-                var offset = 0;
+                var idx_1 = 0;
+                var props = void 0;
+                var offset_1 = 0;
+                var shape = this._shape;
+                var pathOptions = this._pathOptions;
+                var sourcePos = this._positions;
+                var headings = this._headingIntervals;
+                var speeds = this._speedIntervals;
+                var timestamps = this._timestamps;
+                var route_1 = this._route;
                 if (progress === 1) {
                     //Animation is done.
-                    idx = this._headingIntervals.length - 1;
-                    state.position = this._positions[idx + 1];
-                    state.heading = this._headingIntervals[idx];
-                    state.speed = this._speedIntervals[idx];
-                    state.timestamp = this._timestamps[idx + 1];
-                    if (this._pathOptions.map) {
+                    idx_1 = headings.length - 1;
+                    state = {
+                        position: sourcePos[idx_1 + 1],
+                        heading: headings[idx_1],
+                        speed: speeds[idx_1],
+                        timestamp: timestamps[idx_1 + 1]
+                    };
+                    if (pathOptions.map) {
                         this._setMapCamera(state.position, state.heading, false);
                     }
-                    Utils.setCoordinates(this._shape, state.position, this._positions);
-                    props = this._route[idx].properties;
-                    offset = 1;
+                    Utils.setCoordinates(shape, state.position, sourcePos);
+                    props = route_1[idx_1].properties;
+                    offset_1 = 1;
                 }
                 else if (progress === 0) {
-                    idx = 0;
-                    state.position = this._positions[0];
-                    state.heading = this._headingIntervals[0];
-                    state.speed = this._speedIntervals[0];
-                    state.timestamp = this._timestamps[0];
-                    if (this._pathOptions.map) {
+                    idx_1 = 0;
+                    state = {
+                        position: sourcePos[0],
+                        heading: headings[0],
+                        speed: speeds[0],
+                        timestamp: timestamps[0]
+                    };
+                    if (pathOptions.map) {
                         this._setMapCamera(state.position, state.heading, false);
                     }
-                    Utils.setCoordinates(this._shape, state.position, [state.position, state.position]);
-                    props = this._route[0].properties;
+                    Utils.setCoordinates(shape, state.position, [state.position, state.position]);
+                    props = route_1[0].properties;
                 }
                 else {
                     var dt = this._totalTime * progress;
                     var positions = null;
                     //Calculate the coordinate part way between the origin and destination.
                     if (dt > this._totalTime) {
-                        idx = this._headingIntervals.length - 1;
-                        state.heading = this._headingIntervals[idx];
-                        state.speed = this._speedIntervals[idx];
-                        state.timestamp = this._timestamps[idx + 1];
-                        positions = this._positions.slice(0);
-                        props = this._route[idx + 1].properties;
-                        offset = 1;
+                        idx_1 = headings.length - 1;
+                        state = {
+                            heading: headings[idx_1],
+                            speed: speeds[idx_1],
+                            timestamp: timestamps[idx_1 + 1]
+                        };
+                        positions = sourcePos.slice(0);
+                        props = route_1[idx_1 + 1].properties;
+                        offset_1 = 1;
                     }
                     else if (dt < 0) {
-                        state.heading = this._headingIntervals[0];
-                        positions = this._positions.slice(0, 1);
+                        state.heading = headings[0];
+                        positions = sourcePos.slice(0, 1);
                     }
                     else {
                         var ellapsed = 0;
-                        for (idx = 0; idx < this._headingIntervals.length; idx++) {
-                            if (ellapsed + this._timeIntervals[idx] >= dt) {
-                                state.heading = this._headingIntervals[idx];
-                                state.speed = this._speedIntervals[idx];
-                                positions = this._positions.slice(0, idx + 1);
+                        var ti = this._timeIntervals;
+                        for (idx_1 = 0; idx_1 < headings.length; idx_1++) {
+                            if (ellapsed + ti[idx_1] >= dt) {
+                                state.heading = headings[idx_1];
+                                state.speed = speeds[idx_1];
+                                positions = sourcePos.slice(0, idx_1 + 1);
                                 //Time in ms remaining that forms sub-path.
                                 var dt2 = dt - ellapsed;
                                 //Distance travelled based on average speed. Note that dt2 is in ms and speed is in m/s, thus the conversion to seconds.
-                                var dx = this._speedIntervals[idx] * dt2 * 0.001;
+                                var dx = speeds[idx_1] * dt2 * 0.001;
                                 //Get the offset distance from the last known point.
-                                offset = dx / azmaps.math.getDistanceTo(this._positions[idx], this._positions[idx + 1]);
-                                state.timestamp = this._timestamps[idx] + dt2;
-                                positions.push(azmaps.math.getDestination(this._positions[idx], state.heading, dx));
+                                offset_1 = dx / azmaps.math.getDistanceTo(sourcePos[idx_1], sourcePos[idx_1 + 1]);
+                                state.timestamp = timestamps[idx_1] + dt2;
+                                positions.push(azmaps.math.getDestination(sourcePos[idx_1], state.heading, dx));
                                 break;
                             }
                             else {
-                                ellapsed += this._timeIntervals[idx];
+                                ellapsed += ti[idx_1];
                             }
                         }
                     }
                     if (positions && positions.length > 0) {
                         state.position = positions[positions.length - 1];
-                        if (this._pathOptions.map) {
+                        if (pathOptions.map) {
                             //Animate to the next view.
                             this._setMapCamera(state.position, state.heading, positions.length > 2);
                         }
-                        Utils.setCoordinates(this._shape, state.position, positions);
+                        Utils.setCoordinates(shape, state.position, positions);
                     }
                 }
                 state = Object.assign(props || {}, state);
-                if (this._pathOptions.captureMetadata) {
+                if (pathOptions.captureMetadata) {
                     var obj = {};
-                    if (this._valueInterpolations && Array.isArray(this._valueInterpolations)) {
-                        this._valueInterpolations.forEach(function (vi) {
-                            Utils.interpolateValue(_this._route[idx], _this._route[idx + 1], offset, vi, obj);
+                    var vi = this._valueInterpolations;
+                    if (vi && Array.isArray(vi)) {
+                        vi.forEach(function (vi) {
+                            Utils.interpolateValue(route_1[idx_1], route_1[idx_1 + 1], offset_1, vi, obj);
                         });
                     }
-                    Utils.setMetadata(this._shape, Object.assign(state, obj));
+                    Utils.setMetadata(shape, Object.assign(state, obj));
                 }
                 return state;
             }
@@ -2525,41 +2571,45 @@ MIT License
         ***************************/
         RoutePathAnimation.prototype._processPath = function () {
             if (this._route) {
-                var positions = [];
                 this._totalTime = 0;
                 this._positions = null;
-                this._headingIntervals = [];
-                this._speedIntervals = [];
-                this._timeIntervals = [];
-                this._timestamps = [];
-                var f = this._route[0];
+                var positions = [];
+                var headingIntervals = [];
+                var speedIntervals = [];
+                var timeIntervals = [];
+                var timestamps = [];
+                var r = this._route;
+                var f = r[0];
                 if (f.type === 'Feature' && f.geometry.type === 'Point' && typeof f.properties._timestamp === 'number') {
-                    f = this._route[0];
-                    this._timestamps.push(f.properties._timestamp);
+                    timestamps.push(f.properties._timestamp);
                     positions.push(f.geometry.coordinates);
-                    for (var i = 1, len = this._route.length; i < len; i++) {
-                        f = this._route[i];
+                    for (var i = 1, len = r.length; i < len; i++) {
+                        f = r[i];
                         if (f.type === 'Feature' && f.geometry.type === 'Point' && typeof f.properties._timestamp === 'number') {
                             positions.push(f.geometry.coordinates);
                             var d = azmaps.math.getDistanceTo(positions[i - 1], positions[i]);
-                            this._timestamps.push(f.properties._timestamp);
-                            var dt = this._timestamps[i] - this._timestamps[i - 1];
-                            this._timeIntervals.push(dt);
+                            timestamps.push(f.properties._timestamp);
+                            var dt = timestamps[i] - timestamps[i - 1];
+                            timeIntervals.push(dt);
                             this._totalTime += dt;
                             //Get speed in meters per second. Convert time from ms to seconds.
-                            this._speedIntervals.push(d / (dt * 0.001));
+                            speedIntervals.push(d / (dt * 0.001));
                             var h = azmaps.math.getHeading(positions[i - 1], positions[i]);
-                            this._headingIntervals.push(h);
+                            headingIntervals.push(h);
                         }
                     }
                 }
                 else {
                     throw 'Feature is not a point or is missing a _timestamp value.';
                 }
-                if (this._route.length !== positions.length) {
+                if (r.length !== positions.length) {
                     this.dispose();
                     throw 'Unable to process all points in route.';
                 }
+                this._headingIntervals = headingIntervals;
+                this._speedIntervals = speedIntervals;
+                this._timeIntervals = timeIntervals;
+                this._timestamps = timestamps;
                 this._positions = positions;
                 _super.prototype.setOptions.call(this, { duration: this._totalTime });
             }
@@ -2631,18 +2681,15 @@ MIT License
     function setCoordinates(shape, newCoordinates, options) {
         var c = Utils.getSuitableCoordinates(shape, newCoordinates);
         if (shape instanceof azmaps.Shape) {
-            switch (shape.getType()) {
-                case 'Point':
-                    return new PointTranslateAnimation(shape, c, options);
-                case 'MultiPoint':
-                case 'LineString':
-                case 'MultiLineString':
-                case 'Polygon':
-                case 'MultiPolygon':
-                    return new MorphShapeAnimation(shape, {
-                        type: shape.getType(),
-                        coordinates: c
-                    }, options);
+            var t = shape.getType();
+            if (t === 'Point') {
+                return new PointTranslateAnimation(shape, c, options);
+            }
+            else if (t !== 'GeometryCollection') {
+                return new MorphShapeAnimation(shape, {
+                    type: shape.getType(),
+                    coordinates: c
+                }, options);
             }
         }
         return new PointTranslateAnimation(shape, c, options);
@@ -2666,7 +2713,7 @@ MIT License
      */
     function moveAlongPath(path, shape, options) {
         if ((shape && (shape instanceof azmaps.HtmlMarker || (shape instanceof azmaps.Shape && shape.getType() === 'Point'))) || (options && options['map'])) {
-            var p;
+            var p = void 0;
             if (path) {
                 if (Array.isArray(path)) {
                     //Must be an array of positions.
@@ -2978,10 +3025,11 @@ MIT License
         GroupAnimation.prototype.reset = function () {
             //Prevent any queued animations from starting.
             this._cancelAnimations = true;
+            var a = this._animations;
             //Stop all animations that are playing. 
-            if (this._animations && this._animations.length > 0) {
-                for (var i = 0; i < this._animations.length; i++) {
-                    this._animations[i].reset();
+            if (a && a.length > 0) {
+                for (var i = 0; i < a.length; i++) {
+                    a[i].reset();
                 }
             }
             this._isPlaying = false;
@@ -2990,10 +3038,11 @@ MIT License
         GroupAnimation.prototype.stop = function () {
             //Prevent any queued animations from starting.
             this._cancelAnimations = true;
+            var a = this._animations;
             //Stop all animations that are playing. 
-            if (this._animations && this._animations.length > 0) {
-                for (var i = 0; i < this._animations.length; i++) {
-                    this._animations[i].stop();
+            if (a && a.length > 0) {
+                for (var i = 0; i < a.length; i++) {
+                    a[i].stop();
                 }
             }
             this._isPlaying = false;
@@ -3034,17 +3083,18 @@ MIT License
          */
         GroupAnimation.prototype._playTogether = function () {
             var _this = this;
-            if (this._animations && this._animations.length > 0) {
+            var a = this._animations;
+            if (a && a.length > 0) {
                 this._isPlaying = true;
-                for (var i = 0; i < this._animations.length; i++) {
-                    if (i === this._animations.length - 1) {
-                        this._animations[i]._onComplete = function () {
+                for (var i = 0; i < a.length; i++) {
+                    if (i === a.length - 1) {
+                        a[i]._onComplete = function () {
                             _this._isPlaying = false;
                             //Animations complete.
                             _this._invokeEvent('oncomplete', null);
                         };
                     }
-                    this._animations[i].play();
+                    a[i].play();
                 }
             }
         };
@@ -3053,19 +3103,20 @@ MIT License
          */
         GroupAnimation.prototype._playSeq = function () {
             var _this = this;
-            if (this._animations && this._animations.length > 0) {
+            var a = this._animations;
+            if (a && a.length > 0) {
                 this._isPlaying = true;
-                var idx = 0;
-                var callback = function () {
+                var idx_1 = 0;
+                var callback_1 = function () {
                     if (_this._isPlaying) {
-                        if (idx > 0) {
+                        if (idx_1 > 0) {
                             //Only use the callback once.
-                            _this._animations[idx - 1]._onComplete = null;
+                            a[idx_1 - 1]._onComplete = null;
                         }
-                        if (!_this._cancelAnimations && idx < _this._animations.length) {
-                            _this._animations[idx]._onComplete = callback;
-                            _this._animations[idx].play();
-                            idx++;
+                        if (!_this._cancelAnimations && idx_1 < a.length) {
+                            a[idx_1]._onComplete = callback_1;
+                            a[idx_1].play();
+                            idx_1++;
                         }
                         else {
                             _this._isPlaying = false;
@@ -3074,7 +3125,7 @@ MIT License
                         }
                     }
                 };
-                callback();
+                callback_1();
             }
         };
         /**
@@ -3083,47 +3134,48 @@ MIT License
         GroupAnimation.prototype._playInterval = function () {
             if (this._animations && this._animations.length > 0) {
                 this._isPlaying = true;
-                var self = this;
-                var idx = 0;
-                var p = function () {
-                    if (self._isPlaying) {
-                        if (!self._cancelAnimations && idx < self._animations.length) {
-                            if (idx === self._animations.length - 1) {
-                                self._animations[idx]._onComplete = function () {
-                                    if (self._isPlaying) {
-                                        self._isPlaying = false;
+                var self_1 = this;
+                var idx_2 = 0;
+                var p_1 = function () {
+                    if (self_1._isPlaying) {
+                        if (!self_1._cancelAnimations && idx_2 < self_1._animations.length) {
+                            if (idx_2 === self_1._animations.length - 1) {
+                                self_1._animations[idx_2]._onComplete = function () {
+                                    if (self_1._isPlaying) {
+                                        self_1._isPlaying = false;
                                         //Animations complete.
-                                        self._invokeEvent('oncomplete', null);
+                                        self_1._invokeEvent('oncomplete', null);
                                     }
                                 };
                             }
-                            self._animations[idx].play();
-                            idx++;
+                            self_1._animations[idx_2].play();
+                            idx_2++;
                             setTimeout$1(function () {
-                                p();
-                            }, self._options.interval);
+                                p_1();
+                            }, self_1._options.interval);
                         }
-                        else if (self._cancelAnimations && self._isPlaying) {
-                            self._isPlaying = false;
+                        else if (self_1._cancelAnimations && self_1._isPlaying) {
+                            self_1._isPlaying = false;
                             //Animations complete.
-                            self._invokeEvent('oncomplete', null);
+                            self_1._invokeEvent('oncomplete', null);
                         }
                     }
                 };
-                p();
+                p_1();
             }
         };
         /** Calculates the total duration of the animation. */
         GroupAnimation.prototype._calculateDuration = function () {
-            var _this = this;
             var maxPostInterval = 0;
             var intervalRemaining = 0;
             var max = 0;
             var sum = 0;
-            var totalInterval = this._options.interval * this._animations.length;
-            this._animations.forEach(function (a, i, arr) {
+            var options = this._options;
+            var a = this._animations;
+            var totalInterval = options.interval * a.length;
+            a.forEach(function (a, i, arr) {
                 var d = a.getDuration();
-                intervalRemaining = totalInterval - i * _this._options.interval;
+                intervalRemaining = totalInterval - i * options.interval;
                 if (intervalRemaining < d) {
                     maxPostInterval = Math.max(maxPostInterval, d - intervalRemaining);
                 }
@@ -3131,7 +3183,7 @@ MIT License
                 sum += d;
             });
             var duration = 0;
-            switch (this._options.playType) {
+            switch (options.playType) {
                 case 'together':
                     duration = max;
                     break;

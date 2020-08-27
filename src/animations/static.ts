@@ -30,10 +30,10 @@ export function drop(
     dataSource?: azmaps.source.DataSource, 
     height?: number, 
     options?: PlayableAnimationOptions): PlayableAnimation {
-    var s: azmaps.Shape[] = [];
+        let s: azmaps.Shape[] = [];
 
     if (Array.isArray(shapes)) {
-        for (var i = 0, len = shapes.length; i < len; i++) {
+        for (let i = 0, len = shapes.length; i < len; i++) {
             if ((shapes[i]['type'] === 'Feature' && shapes[i]['geometry']['type'] === 'Point') || shapes[i]['type'] === 'Point') {
                 s.push(new azmaps.Shape(shapes[i] as azmaps.data.Point));
             } else if (shapes[i] instanceof azmaps.Shape && (shapes[i] as azmaps.Shape).getType() === 'Point') {
@@ -61,10 +61,10 @@ export function drop(
  * @param options Options for the animation.
  */
 export function dropMarkers(markers: azmaps.HtmlMarker | azmaps.HtmlMarker[], map?: azmaps.Map, height?: number, options?: PlayableAnimationOptions): PlayableAnimation {
-    var s: azmaps.HtmlMarker[] = [];
+    let s: azmaps.HtmlMarker[] = [];
 
     if (Array.isArray(markers)) {
-        for (var i = 0, len = markers.length; i < len; i++) {
+        for (let i = 0, len = markers.length; i < len; i++) {
             if (markers[i] instanceof azmaps.HtmlMarker){
                 s.push(markers[i] as azmaps.HtmlMarker);
             }
@@ -87,22 +87,17 @@ export function dropMarkers(markers: azmaps.HtmlMarker | azmaps.HtmlMarker[], ma
  * @param options Options for the animation.
  */
 export function setCoordinates(shape: azmaps.Shape | azmaps.HtmlMarker, newCoordinates: azmaps.data.Position | azmaps.data.Position[] | azmaps.data.Position[][] | azmaps.data.Position[][][], options?: PathAnimationOptions | MapPathAnimationOptions): PlayableAnimation {
-    var c = Utils.getSuitableCoordinates(shape, newCoordinates);
+    let c = Utils.getSuitableCoordinates(shape, newCoordinates);
 
     if(shape instanceof azmaps.Shape){
-        switch (shape.getType()) {
-            case 'Point':
-                return new PointTranslateAnimation(shape, c as azmaps.data.Position, options);
-            case 'MultiPoint':
-            case 'LineString':
-            case 'MultiLineString':
-            case 'Polygon':
-            case 'MultiPolygon':
-                return new MorphShapeAnimation(shape, {
-                    type: shape.getType(),
-                    coordinates: c   
-                }, options);
-                break;
+        let t = shape.getType();
+        if(t === 'Point'){
+            return new PointTranslateAnimation(shape, c as azmaps.data.Position, options);
+        } else if (t !== 'GeometryCollection'){
+            return new MorphShapeAnimation(shape, {
+                type: shape.getType(),
+                coordinates: c   
+            }, options);
         }
     }
 
@@ -130,7 +125,7 @@ export function snakeline(shape: azmaps.Shape, options?: PathAnimationOptions | 
  */
 export function moveAlongPath(path: azmaps.data.Position[] | azmaps.data.LineString | azmaps.Shape, shape?: azmaps.Shape | azmaps.HtmlMarker, options?: PathAnimationOptions | MapPathAnimationOptions): PlayableAnimation {
     if ((shape && (shape instanceof azmaps.HtmlMarker || (shape instanceof azmaps.Shape && shape.getType() === 'Point'))) || (options && options['map'])) {
-        var p: azmaps.data.Position[];
+        let p: azmaps.data.Position[];
 
         if (path) {
             if (Array.isArray(path)) {
@@ -192,7 +187,7 @@ export function moveAlongRoute(route: azmaps.data.Feature<azmaps.data.Point, any
 export function extractRoutePoints(shapes: azmaps.data.FeatureCollection | azmaps.Shape | azmaps.data.Feature<azmaps.data.Geometry, any> | (azmaps.Shape | azmaps.data.Feature<azmaps.data.Geometry, any>)[], timestampProperty?: string): azmaps.data.Feature<azmaps.data.Point, any>[] {
     timestampProperty = timestampProperty || '_timestamp';
 
-    var route: azmaps.data.Feature<azmaps.data.Point, any>[];
+    let route: azmaps.data.Feature<azmaps.data.Point, any>[];
 
     if(Array.isArray(shapes)){
         route = [];
@@ -262,7 +257,7 @@ export function morph(shape: azmaps.Shape, newGeometry: azmaps.data.Geometry, op
  * @param callback A callback function that is called after the delay period.
  */
 export function delay(timeout: number, callback?: string | Function): IPlayableAnimation {
-    var animation = new SimpleIntervalAnimation(callback, timeout, 1);
+    let animation = new SimpleIntervalAnimation(callback, timeout, 1);
     return animation;
 }
 
@@ -273,7 +268,7 @@ export function delay(timeout: number, callback?: string | Function): IPlayableA
  * @param numberOfIntervals The number of intervals to trigger in the animation. DEfault: Infinity
  */
 export function interval(period: number, callback?: string | Function, numberOfIntervals?: number): IPlayableAnimation {
-    var animation = new SimpleIntervalAnimation(callback, period, Math.max(numberOfIntervals || Infinity, 1));
+    let animation = new SimpleIntervalAnimation(callback, period, Math.max(numberOfIntervals || Infinity, 1));
     return animation;
 }
 
@@ -283,7 +278,7 @@ export function interval(period: number, callback?: string | Function, numberOfI
  * @param timeout The time, in milliseconds (thousandths of a second), the timer should delay in between executions of the specified callback function.
  */
 export function setInterval(callback: string | Function, timeout: number, ...args: any[]): number {
-    var animation = new SimpleIntervalAnimation(callback, timeout, Infinity, args);
+    let animation = new SimpleIntervalAnimation(callback, timeout, Infinity, args);
     animation.play();
     return animation._id;
 }
@@ -293,7 +288,7 @@ export function setInterval(callback: string | Function, timeout: number, ...arg
  * @param intervalId The ID from the creation of a setInterval.
  */
 export function clearInterval(intervalId: number): void {
-    var animation = AnimationManager.instance.getById(intervalId);
+    let animation = AnimationManager.instance.getById(intervalId);
     if(animation){
         animation.stop();
     }
@@ -305,7 +300,7 @@ export function clearInterval(intervalId: number): void {
  * @param timeout The time, in milliseconds (thousandths of a second), the timer should delay before executioning the specified callback function.
  */
 export function setTimeout(callback: string | Function, timeout: number, ...args: any[]): number {
-    var animation = new SimpleIntervalAnimation(callback, timeout, 1, args);
+    let animation = new SimpleIntervalAnimation(callback, timeout, 1, args);
     animation.play();
     return animation._id;
 }
@@ -349,20 +344,20 @@ export function flowingDashedLine(layer: azmaps.layer.LineLayer, options?: Movin
         });
     }
 
-    var dashLength = options.dashLength || 4;
-    var gapLength = options.gapLength || 4;
+    let dashLength = options.dashLength || 4;
+    let gapLength = options.gapLength || 4;
  
     //We divide the animation up into 40 steps to make careful use of the finite space in LineAtlas.
-    var steps = 40;
+    let steps = 40;
     
     // A # of steps proportional to the dashLength are devoted to manipulating the dash.
-    var dashSteps = steps * dashLength / (gapLength + dashLength);
+    let dashSteps = steps * dashLength / (gapLength + dashLength);
 
     // A # of steps proportional to the gapLength are devoted to manipulating the gap.
-    var gapSteps = steps - dashSteps;
+    let gapSteps = steps - dashSteps;
   
-    var animation = new FrameBasedAnimationTimer(40, (frameIdx) => {                  
-        var t, a, b, c, d;
+    let animation = new FrameBasedAnimationTimer(40, (frameIdx) => {                  
+        let t, a, b, c, d;
 
         if (frameIdx < dashSteps) {
             t = frameIdx / dashSteps;

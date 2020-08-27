@@ -78,17 +78,19 @@ export class MorphShapeAnimation extends MapPathPlayableAnaimation {
             this._setMapCamera(newCenter, heading, true);
         }
 
+        let s = this._shape;
+
         if(this._pathOptions.captureMetadata){
-            this._shape.addProperty('heading', heading);
+            s.addProperty('heading', heading);
         }
 
         //If shape is a circle and geometry is a Point, just set coordinates.
-        if(this._shape.isCircle() && g.type === 'Point') {
-            this._shape.setCoordinates(g.coordinates);
+        if(s.isCircle() && g.type === 'Point') {
+            s.setCoordinates(g.coordinates);
         } else {
             //TODO: Update with supported function in future.
-            this._shape['data'].geometry.type = g.type;
-            this._shape.setCoordinates(g.coordinates);
+            s['data'].geometry.type = g.type;
+            s.setCoordinates(g.coordinates);
         }
 
         return {
