@@ -250,7 +250,7 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
         if(o.visible && o.tileLayerOptions && o.tileLayerOptions.length > 0 && frameIdx < o.tileLayerOptions.length) {
             let m = this._map['map'];
             let ct = this._currentTileLayer;
-            let id;
+            let id: string;
 
             if(ct){
                 id = ct.getId();
