@@ -36,7 +36,7 @@ A rich library of animations for use with the Azure Maps Web SDK.
 
 Download the project and copy the `azure-maps-animations` JavaScript file from the `dist` folder into your project. 
 
-See the [documentation](https://github.com/Azure-Samples/azure-maps-animations/tree/main/docs) for more details on a specific feature or take a look at one of the samples:
+See the [documentation](https://github.com/Azure-Samples/azure-maps-animations/tree/main/docs) for more details on a specific feature or take a look at one of the samples below.
 
 ## Samples
 
@@ -122,16 +122,7 @@ The following are some ideas to take this project further.
 
 ## Related Projects
 
-**Open Azure Maps Web SDK modules**
-
-* [Azure Maps Geolocation Control module](https://github.com/Azure-Samples/azure-maps-geolocation-control)
-* [Azure Maps Fullscreen Control module](https://github.com/Azure-Samples/azure-maps-fullscreen-control)
-* [Azure Maps Selection Control module](https://github.com/Azure-Samples/azure-maps-selection-control)
-* [Azure Maps Services UI module](https://github.com/Azure-Samples/azure-maps-services-ui)
-* [Azure Maps Sync Map module](https://github.com/Azure-Samples/azure-maps-sync-maps)
-
-**Additional projects**
-
+* [Azure Maps Web SDK Open modules](https://github.com/microsoft/Maps/blob/master/AzureMaps.md#open-web-sdk-modules) - A collection of open source modules that extend the Azure Maps Web SDK.
 * [Azure Maps Web SDK Samples](https://github.com/Azure-Samples/AzureMapsCodeSamples)
 * [Azure Maps Gov Cloud Web SDK Samples](https://github.com/Azure-Samples/AzureMapsGovCloudCodeSamples)
 * [Azure Maps & Azure Active Directory Samples](https://github.com/Azure-Samples/Azure-Maps-AzureAD-Samples)
