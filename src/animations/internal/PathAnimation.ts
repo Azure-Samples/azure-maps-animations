@@ -23,17 +23,18 @@ export class PathAnimation extends MapPathPlayableAnaimation {
 
     constructor(path: azmaps.data.Position[], shape?: azmaps.Shape | azmaps.HtmlMarker, options?: MapPathAnimationOptions) {
         super();
+        const self = this;
 
-        this._shape = shape;
-        this._positions = path;
+        self._shape = shape;
+        self._positions = path;
 
-        this.setOptions(Object.assign({
+        self.setOptions(Object.assign({
             rotate: true,
             rotationOffset: 0
         }, options || {}));
 
         if (options && options.autoPlay) {
-            this.play();
+            self.play();
         } 
     }
 
@@ -43,50 +44,50 @@ export class PathAnimation extends MapPathPlayableAnaimation {
 
     /** Gets the animation options. */
     public dispose(): void {
-        this._totalLength = null;
-        this._positions = null;
-        this._pixels = null;
-        this._distances = null;
-        this._headings = null;
-        this._shape = null;
+        Object.keys(this).forEach(k => {
+            this[k] = undefined;
+        });
 
         super.dispose();
     }
 
     /** Sets the options of the animation. */
     public setOptions(options: MapPathAnimationOptions): void {
+        const self = this;
+
         if(options){
             super.setOptions(options);
         }
 
-        let isPlaying = this.isPlaying();
+        let isPlaying = self.isPlaying();
 
         if(isPlaying){
-            this.pause();
+            self.pause();
         }
 
-        if(this._positions){
+        if(self._positions){
             
             let tl = 0;
             let distances = [];
             let heading = [];
-            const pos = this._positions;
+            const pos = self._positions;
+            const mapMath = azmaps.math;
 
             //Calculate the distances and headings between the positions.
-            if (this._pathOptions.geodesic) {
+            if (self._pathOptions.geodesic) {
 
                 for (let i = 1, len = pos.length; i < len; i++) {
-                    let d = azmaps.math.getDistanceTo(pos[i - 1], pos[i]);
+                    let d = mapMath.getDistanceTo(pos[i - 1], pos[i]);
                     tl += d;
                     distances.push(d);
 
-                    let h = azmaps.math.getHeading(pos[i - 1], pos[i]);
+                    let h = mapMath.getHeading(pos[i - 1], pos[i]);
                     heading.push(h);
                 }
             } else {
                 //Calculate the mercator pixels of the coordinates at zoom level 21.
-                let pixels = azmaps.math.mercatorPositionsToPixels(pos, 21);
-                this._pixels = pixels;
+                let pixels = mapMath.mercatorPositionsToPixels(pos, 21);
+                self._pixels = pixels;
 
                 for (let i = 1, len = pixels.length; i < len; i++) {
                     let d = azmaps.Pixel.getDistance(pixels[i - 1], pixels[i]);
@@ -98,17 +99,17 @@ export class PathAnimation extends MapPathPlayableAnaimation {
                 }
             }
 
-            this._totalLength = tl;
-            this._distances = distances;
-            this._headings = heading;
+            self._totalLength = tl;
+            self._distances = distances;
+            self._headings = heading;
 
-            if (this._pathOptions.captureMetadata) {
-                Utils.setMetadata(this._shape, { heading: this._headings[0] });
+            if (self._pathOptions.captureMetadata) {
+                Utils.setMetadata(self._shape, { heading: self._headings[0] });
             }
         }  
 
         if(isPlaying){
-            this.play();
+            self.play();
         }
     }
 
@@ -116,20 +117,18 @@ export class PathAnimation extends MapPathPlayableAnaimation {
      * Callback function that contains the animation frame logic.  
      * @param progress The progress of the animation where 0 is start and 1 is the end.
      */
-    public onAnimationProgress(progress: number): {
-        position: azmaps.data.Position,
-        heading: number
-    } {
+    public onAnimationProgress(progress: number): { position: azmaps.data.Position, heading: number} {
+        const self = this;
         let pos: azmaps.data.Position;
         let heading: number;
-        let shape = this._shape;
+        const shape = self._shape;
 
-        const sourcePos = this._positions;
-        const headings = this._headings;
-        const distances = this._distances;
-        const pathOptions = this._pathOptions;
-        const totalLength = this._totalLength;
-        
+        const sourcePos = self._positions;
+        const headings = self._headings;
+        const distances = self._distances;
+        const pathOptions = self._pathOptions;
+        const totalLength = self._totalLength;
+        const mapMath = azmaps.math;        
 
         if (progress === 1) {
             //Animation is done.
@@ -137,22 +136,22 @@ export class PathAnimation extends MapPathPlayableAnaimation {
             heading = (headings.length > 0) ? headings[headings.length - 1] : undefined;
 
             if (pathOptions.map) {
-                this._setMapCamera(pos, heading, false);
+                self._setMapCamera(pos, heading, false);
             } 
 
-            Utils.setCoordinates(shape, pos, positions);
+            Utils.setCoordinates(shape, pos, sourcePos);
         } else if (progress === 0) {
             pos = sourcePos[0];
             heading = (headings.length > 0)? headings[0] : undefined;
 
             if (pathOptions.map) {
-                this._setMapCamera(pos, heading, false);
+                self._setMapCamera(pos, heading, false);
             } 
 
             Utils.setCoordinates(shape, pos, [pos, pos]);
         } else {
-            var dx = totalLength * progress;
-            var positions: azmaps.data.Position[] = null;
+            const dx = totalLength * progress;
+            let positions: azmaps.data.Position[] = null;
 
             //Calculate the coordinate part way between the origin and destination.
             if (pathOptions.geodesic) {
@@ -164,13 +163,13 @@ export class PathAnimation extends MapPathPlayableAnaimation {
                     heading = headings[0];
                     positions = sourcePos.slice(0, 1);
                 } else {
-                    var travelled = 0;
+                    let travelled = 0;
 
-                    for (var i = 0; i < distances.length; i++) {
+                    for (let i = 0; i < distances.length; i++) {
                         if (travelled + distances[i] >= dx) {
                             heading = headings[i];
                             positions = sourcePos.slice(0, i + 1);
-                            positions.push(azmaps.math.getDestination(sourcePos[i], heading, dx - travelled));
+                            positions.push(mapMath.getDestination(sourcePos[i], heading, dx - travelled));
                             break;
                         } else {
                             travelled += distances[i];
@@ -178,28 +177,28 @@ export class PathAnimation extends MapPathPlayableAnaimation {
                     }
                 }
             } else {
-                var px = null;
-                const pixels = this._pixels;
+                let px = null;
+                const pixels = self._pixels;
 
                 if (dx > totalLength) {
                     heading = headings[headings.length - 1];
                     px = Utils.getPixelDestination(pixels[pixels.length - 1], heading, dx - totalLength);
                     positions = sourcePos.slice(0);
-                    positions.push((azmaps.math.mercatorPixelsToPositions([px], 21)[0]));
+                    positions.push(mapMath.mercatorPixelsToPositions([px], 21)[0]);
                 } else if (dx < 0) {
                     heading = headings[0];
                     px = Utils.getPixelDestination(pixels[0], heading, dx);
                     positions = sourcePos.slice(0, 1);
-                    positions.push(azmaps.math.mercatorPixelsToPositions([px], 21)[0]);
+                    positions.push(mapMath.mercatorPixelsToPositions([px], 21)[0]);
                 } else {
-                    var travelled = 0;
+                    let travelled = 0;
 
-                    for (var i = 0; i < distances.length; i++) {
+                    for (let i = 0; i < distances.length; i++) {
                         if (travelled + distances[i] >= dx) {
                             heading = headings[i];
                             px = Utils.getPixelDestination(pixels[i], heading, dx - travelled);
                             positions = sourcePos.slice(0, i + 1);
-                            positions.push(azmaps.math.mercatorPixelsToPositions([px], 21)[0]);
+                            positions.push(mapMath.mercatorPixelsToPositions([px], 21)[0]);
                             break;
                         } else {
                             travelled += distances[i];
@@ -213,7 +212,7 @@ export class PathAnimation extends MapPathPlayableAnaimation {
 
                 if (pathOptions.map) {
                     //Animate to the next view.
-                    this._setMapCamera(pos, heading, positions.length > 2);
+                    self._setMapCamera(pos, heading, positions.length > 2);
                 } 
 
                 Utils.setCoordinates(shape, pos, positions);

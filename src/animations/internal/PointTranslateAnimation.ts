@@ -27,20 +27,23 @@ export class PointTranslateAnimation extends MapPathPlayableAnaimation {
      */
     constructor(shape: azmaps.Shape | azmaps.HtmlMarker, newPosition?: azmaps.data.Position, options?: MapPathAnimationOptions) {
         super();
+        const self = this;
 
+        let pos: azmaps.data.Position;
         if(shape instanceof azmaps.Shape){
-            this._originPosition = shape.getCoordinates() as azmaps.data.Position;
+            pos = shape.getCoordinates() as azmaps.data.Position;
         } else {
-            this._originPosition = shape.getOptions().position;
+            pos = shape.getOptions().position;
         }
-        
-        this._shape = shape;
-        this._destinationPosition = newPosition;
 
-        this.setOptions(options);
+        self._originPosition = pos;
+        self._shape = shape;
+        self._destinationPosition = newPosition;
+
+        self.setOptions(options);
 
         if (options && options.autoPlay) {
-            this.play();
+            self.play();
         }  
     }
 
@@ -54,18 +57,24 @@ export class PointTranslateAnimation extends MapPathPlayableAnaimation {
             super.setOptions(options);
         }
 
-        if(this._originPosition && this._destinationPosition){
-            if (this._pathOptions.geodesic) {
+        const self = this;
+        const oPos = self._originPosition;
+        const destPos = self._destinationPosition;
+        const mapMath = azmaps.math;
+        const azPixel = azmaps.Pixel;
+
+        if(oPos && destPos){
+            if (self._pathOptions.geodesic) {
                 //Calculate the distance and heading between the points. 
-                this._dx = azmaps.math.getDistanceTo(this._originPosition, this._destinationPosition);
-                this._heading = azmaps.math.getHeading(this._originPosition, this._destinationPosition);
+                self._dx = mapMath.getDistanceTo(oPos, destPos);
+                self._heading = mapMath.getHeading(oPos, destPos);
             } else {
                 //Calculate the mercator pixels of the coordinates at zoom level 21.
-                let pixels = azmaps.math.mercatorPositionsToPixels([this._originPosition, this._destinationPosition], 21);
-                this._originPixel = pixels[0];
+                let pixels = mapMath.mercatorPositionsToPixels([oPos, destPos], 21);
+                self._originPixel = pixels[0];
 
                 //Ensure that the shortest path is taken between coordinates.
-                if (Math.abs(this._originPosition[0] - this._destinationPosition[0]) > 180) {
+                if (Math.abs(oPos[0] - destPos[0]) > 180) {
                     let mapWidth = Math.pow(2, 21) * 512;
 
                     if (pixels[0][0] > pixels[1][0]) {
@@ -76,13 +85,13 @@ export class PointTranslateAnimation extends MapPathPlayableAnaimation {
                 }
 
                 //Calculate the distance and heading between the pixels. 
-                this._dx = azmaps.Pixel.getDistance(pixels[0], pixels[1]);
-                this._heading = azmaps.Pixel.getHeading(pixels[0], pixels[1]);
+                self._dx = azPixel.getDistance(pixels[0], pixels[1]);
+                self._heading = azPixel.getHeading(pixels[0], pixels[1]);
             }
 
-            if (this._pathOptions.captureMetadata) {
-                Utils.setMetadata(this._shape, {
-                    heading: this._heading
+            if (self._pathOptions.captureMetadata) {
+                Utils.setMetadata(self._shape, {
+                    heading: self._heading
                 });
             }
         }
@@ -96,38 +105,45 @@ export class PointTranslateAnimation extends MapPathPlayableAnaimation {
         position: azmaps.data.Position,
         heading: number
     } {
-        if(this._originPosition && this._destinationPosition && this._pathOptions){
+        const self = this;
+        const oPos = self._originPosition;
+        const heading = self._heading;
+        const destPos = self._destinationPosition;
+        const mapMath = azmaps.math;
+        const opt = self._pathOptions;
+
+        if(oPos && destPos && opt){
             let pos: azmaps.data.Position;
             let animateCamera = false;
             
             if (progress === 1) {
                 //Animation is done.
-                pos = this._destinationPosition;
+                pos = destPos;
             } else if (progress === 0) {
                 //Restart animation.
-                pos = this._originPosition;
+                pos = oPos;
             } else {
-                let dx = this._dx * progress;
+                let dx = self._dx * progress;
 
                 //Calculate the coordinate part way between the origin and destination.
-                if (this._pathOptions.geodesic) {
-                    pos = azmaps.math.getDestination(this._originPosition, this._heading, dx);
+                if (opt.geodesic) {
+                    pos = mapMath.getDestination(oPos, heading, dx);
                 } else {
-                    pos = azmaps.math.mercatorPixelsToPositions([azmaps.Pixel.getDestination(this._originPixel, this._heading, dx)], 21)[0];
+                    pos = mapMath.mercatorPixelsToPositions([azmaps.Pixel.getDestination(self._originPixel, heading, dx)], 21)[0];
                 }
 
                 animateCamera = true;
             }
 
-            Utils.setCoordinates(this._shape, pos);
+            Utils.setCoordinates(self._shape, pos);
 
-            if (this._pathOptions.map) {
-                this._setMapCamera(pos, this._heading, animateCamera);
+            if (opt.map) {
+                self._setMapCamera(pos, heading, animateCamera);
             }
 
             return {
                 position: pos,
-                heading: this._heading
+                heading: heading
             };
         }
 

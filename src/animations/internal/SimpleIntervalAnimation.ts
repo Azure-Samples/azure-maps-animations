@@ -9,9 +9,9 @@ export class SimpleIntervalAnimation implements IPlayableAnimation {
     
     private _start: number;
 
-    private _intervalCallback: string | Function;
+    private _intervalCb: string | Function;
     private _delay: number = 1;
-    private _numberOfIOntervals: number = Infinity;
+    private _numberOfInv: number = Infinity;
     private _currentInterval: number = 0;
     private _arguments: any[];
 
@@ -23,34 +23,33 @@ export class SimpleIntervalAnimation implements IPlayableAnimation {
      * @param arguments Any additional arguments to pass to the callback function.
      */
     constructor(intervalCallback: string | Function, delay: number, numberOfIOntervals?: number, ...args: any[]) {
-        this._id =  AnimationManager.instance.add(this);
-        this._intervalCallback = intervalCallback;
-        this._arguments = args;
+        const self = this;
+        self._id =  AnimationManager.instance.add(self);
+        self._intervalCb = intervalCallback;
+        self._arguments = args;
 
         if(delay >= 0){
-            this._delay = delay;
+            self._delay = delay;
         }
 
         if(numberOfIOntervals > 0){
-            this._numberOfIOntervals = numberOfIOntervals;
+            self._numberOfInv = numberOfIOntervals;
         }
     }
     
     /** Disposes the animation. */
     public dispose(): void {
-        AnimationManager.instance.remove(this);
-        this._id = undefined;
-        this._delay = undefined;
-        this._start = undefined;
-        this._intervalCallback = undefined;
-        this._numberOfIOntervals = undefined;
-        this._currentInterval = undefined;
-        this._onComplete = undefined;
+        const self = this;
+        AnimationManager.instance.remove(self);
+       
+        Object.keys(self).forEach(k => {
+            self[k] = undefined;
+        });
     }
 
     /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
     public getDuration(): number {
-        return this._numberOfIOntervals * this._delay;
+        return this._numberOfInv * this._delay;
     }
 
     /** Checks to see if the animaiton is playing.  */
@@ -76,28 +75,31 @@ export class SimpleIntervalAnimation implements IPlayableAnimation {
 
      /** Stops the animation and jumps to the last interval. */
     public stop(): void {
-        this._start = null;
-        this._currentInterval = this._numberOfIOntervals;
+        const self = this;
+        self._start = null;
+        self._currentInterval = self._numberOfInv;
     }
     
     public _onAnimationProgress(timestamp: number): void {
-        if (this._start) {
-            let intervalIdx = Math.round((timestamp - this._start) / this._delay);
+        const self = this;
 
-            if(intervalIdx !== this._currentInterval){
-                this._currentInterval = intervalIdx;
+        if (self._start) {
+            let intervalIdx = Math.round((timestamp - self._start) / self._delay);
 
-                if(this._intervalCallback){
+            if(intervalIdx !== self._currentInterval){
+                self._currentInterval = intervalIdx;
+
+                if(self._intervalCb){
                     //Call setTimeout without any time, so that it calls the callback function asynchronously.
-                    setTimeout(this._intervalCallback, 0, this._arguments);
+                    setTimeout(self._intervalCb, 0, self._arguments);
                 }
 
-                if(intervalIdx >= this._numberOfIOntervals){
-                    this._start = null;
+                if(intervalIdx >= self._numberOfInv){
+                    self._start = null;
                     
-                    if(this._onComplete){
-                        this._onComplete();
-                        this.dispose();
+                    if(self._onComplete){
+                        self._onComplete();
+                        self.dispose();
                     }
                 }
             }

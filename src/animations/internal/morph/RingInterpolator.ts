@@ -2,8 +2,8 @@ import * as azmaps from "azure-maps-control";
 import flubber from "flubber";
 
 export class RingInterpolator  {
-    private _interpolator: any;
-    private _constantPositions: azmaps.data.Position[];
+    private _interp: any;
+    private _constPos: azmaps.data.Position[];
 
     constructor(fromRing: azmaps.data.Position[], toRing: azmaps.data.Position[]) {
         //If positions arrays are identical, don't use interpolate progress as it may add artifacts.
@@ -20,19 +20,20 @@ export class RingInterpolator  {
         }
         
         if(areEqual){
-            this._constantPositions = toRing;
+            this._constPos = toRing;
         } else {
-            this._interpolator = flubber.interpolate(<[number, number][]>fromRing, <[number, number][]>toRing, {
+            this._interp = flubber.interpolate(<[number, number][]>fromRing, <[number, number][]>toRing, {
                 string: false
             });
         }
     }
 
     public interpolate(progress: number): azmaps.data.Position[] {
-        if(this._constantPositions){
-            return this._constantPositions;
+        const self = this;
+        if(self._constPos){
+            return self._constPos;
         }
 
-        return <azmaps.data.Position[]>this._interpolator(progress);
+        return <azmaps.data.Position[]>self._interp(progress);
     }
 }

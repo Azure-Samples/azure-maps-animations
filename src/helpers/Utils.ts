@@ -58,7 +58,7 @@ export class Utils {
         } 
 
         if(coords){
-            let dim = Utils.getDimensions(coords);
+            const dim = Utils.getDimensions(coords);
 
             switch (geomType) {
                 case 'Point':
@@ -118,8 +118,8 @@ export class Utils {
     }
 
     public static getPixelHeading(origin: azmaps.Pixel, destination: azmaps.Pixel): number {
-        let dx = (destination[0] - origin[0]) * Math.PI / 180;
-        let dy = (origin[1] - destination[1]) * Math.PI / 180;
+        const dx = (destination[0] - origin[0]) * Math.PI / 180;
+        const dy = (origin[1] - destination[1]) * Math.PI / 180;
 
         return ((5 / 2 * Math.PI) - Math.atan2(dy, dx)) * 180 / Math.PI % 360;
     }
@@ -169,7 +169,7 @@ export class Utils {
      * @param path Property path string.
      */
     public static getPropertyPath(path: string): string[] {
-        return path.split("/");
+        return path.split('/');
     }
 
     /**
@@ -180,9 +180,9 @@ export class Utils {
      */
     public static setValue(obj: Object, propertyPath: string[], value: any): void {
         if (propertyPath.length > 1) {
-            let key = propertyPath.shift();
+            const key = propertyPath.shift();
             Utils.setValue(obj[key] =
-                Object.prototype.toString.call(obj[key]) === "[object Object]" ? obj[key]: {},
+                Object.prototype.toString.call(obj[key]) === '[object Object]' ? obj[key]: {},
                 propertyPath,
                 value);
         } else {

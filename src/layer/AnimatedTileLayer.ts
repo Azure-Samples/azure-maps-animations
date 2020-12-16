@@ -13,7 +13,7 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
 
     public _id: number;
     public _onComplete: () => void;
-    
+
     /**************************
     * Private properties
     ***************************/
@@ -35,43 +35,45 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
      * A layer that can smoothly animate through an array of tile layers.
      * @param options Options for the layer.
      */
-    constructor(options?: AnimatedTileLayerOptions){
+    constructor(options?: AnimatedTileLayerOptions) {
         super();
 
-        this._id =  AnimationManager.instance.add(this);
+        const self = this;
+        self._id = AnimationManager.instance.add(self);
 
         let numFrames = 0;
 
-        if(options) {
-            this.setOptions(options);
+        if (options) {
+            self.setOptions(options);
 
-            if(options.tileLayerOptions){
+            if (options.tileLayerOptions) {
                 numFrames = options.tileLayerOptions.length;
             }
         }
-        
-        this._animation = new FrameBasedAnimationTimer(numFrames, this._onFrame, options);
-        this._onComplete = this._animation._onComplete;
+
+        self._animation = new FrameBasedAnimationTimer(numFrames, self._onFrame, options);
+        self._onComplete = self._animation._onComplete;
     }
-    
+
     /**************************
     * Public functions
     ***************************/
 
     /** Disposes the layer. */
-    public dispose(): void {       
-        this._animation.stop();
-        AnimationManager.instance.remove(this);
-        AnimationManager.instance.remove(this._animation);
-        this._animation = undefined;
-        this._onComplete = undefined;
-        this._id = undefined;
-        this._options = undefined;        
+    public dispose(): void {
+        const self = this;
+        self._animation.stop();
+        AnimationManager.instance.remove(self);
+        AnimationManager.instance.remove(self._animation);
+        self._animation = undefined;
+        self._onComplete = undefined;
+        self._id = undefined;
+        self._options = undefined;
     }
 
     /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
     public getDuration(): number {
-        return (this._options.loop)? Infinity : this._options.duration;
+        return (this._options.loop) ? Infinity : this._options.duration;
     }
 
     /** Gets the options for the layer. */
@@ -109,7 +111,7 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
     public reset(): void {
         this._animation.reset();
     }
-    
+
     /** Stops the animation. */
     public stop(): void {
         this._animation.stop();
@@ -128,88 +130,100 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
      * @param options The options to apply to the layer.
      */
     public setOptions(options: AnimatedTileLayerOptions): void {
-        if(options.tileLayerOptions) {
-            if(this._tileLayers.length > 0){
-                if(this._map){
-                    this._map.layers.remove(this._tileLayers);
+        const self = this;
+        const animation = self._animation;
+        const map = self._map;
+        const opt = self._options;
+        let tileLayers = self._tileLayers;
+
+        if (options) {
+
+            if (options.tileLayerOptions) {
+                if (tileLayers.length > 0) {
+                    if (map) {
+                        map.layers.remove(tileLayers);
+                    }
+
+                    tileLayers = [];
+                    self._tileLayers = tileLayers;
+                    self._currentTileLayer = null;
                 }
 
-                this._tileLayers = [];
-                this._currentTileLayer = null;
+                options.tileLayerOptions.forEach(x => {
+                    //Do not allow fade duration or visble to be changed in individual layers.
+                    x.fadeDuration = 0;
+                    x.visible = true;
+
+                    //Make opacity 0 by default when rendering the layer. Toggling the opacity is smoother than visble for animations.
+                    //Additionally, by having opacity set to 0, the map will still load the tiles, even if the layer isn't visible yet. 
+                    //This is an easy way to pre-load tiles for better performance.
+                    tileLayers.push(new azmaps.layer.TileLayer(Object.assign({}, x, { opacity: 0 })));
+                });
+
+                if (map) {
+                    map.layers.add(tileLayers, self);
+                }
+
+                opt.tileLayerOptions = options.tileLayerOptions;
+
+                if (animation) {
+                    animation.setNumberOfFrames(opt.tileLayerOptions.length);
+                }
+
+                const frameIdx = (animation) ? self._animation.getCurrentFrameIdx() : 0;
+                if (frameIdx >= 0) {
+                    self._currentTileLayer = tileLayers[frameIdx];
+                    self._currentTileLayer.setOptions({ fadeDuration: 0, visible: true });
+                }
             }
 
-            options.tileLayerOptions.forEach(x => {
-                //Do not allow fade duration or visble to be changed in individual layers.
-                x.fadeDuration = 0;
-                x.visible = true;
+            if (typeof options.visible === 'boolean') {
+                opt.visible = options.visible;
 
-                //Make opacity 0 by default when rendering the layer. Toggling the opacity is smoother than visble for animations.
-                //Additionally, by having opacity set to 0, the map will still load the tiles, even if the layer isn't visible yet. 
-                //This is an easy way to pre-load tiles for better performance.
-                this._tileLayers.push(new azmaps.layer.TileLayer(Object.assign({}, x, { opacity: 0 })));
-            });            
-
-            if(this._map){
-                this._map.layers.add(this._tileLayers, this);
-            }
-
-            this._options.tileLayerOptions = options.tileLayerOptions;
-
-            if(this._animation){
-                this._animation.setNumberOfFrames(this._options.tileLayerOptions.length);
-            }
-
-            var frameIdx = (this._animation)? this._animation.getCurrentFrameIdx(): 0;
-            if(frameIdx >= 0){
-                this._currentTileLayer = this._tileLayers[frameIdx];
-                this._currentTileLayer.setOptions({ fadeDuration: 0, visible: true });
+                if (options.visible) {
+                    let frameIdx = animation.getCurrentFrameIdx();
+                    if (options.tileLayerOptions.length > 0) {
+                        self._currentTileLayer.setOptions({ fadeDuration: 0, opacity: options.tileLayerOptions[frameIdx].opacity });
+                    }
+                } else {
+                    tileLayers.forEach(l => l.setOptions({
+                        opacity: 0
+                    }));
+                }
             }
         }
 
-        if(typeof options.visible === 'boolean') {
-            this._options.visible = options.visible;
-            
-            if(options.visible){
-                let frameIdx = this._animation.getCurrentFrameIdx();
-                if(options.tileLayerOptions.length > 0){
-                    this._currentTileLayer.setOptions({ fadeDuration: 0, opacity: options.tileLayerOptions[frameIdx].opacity });
-                }
-            } else {
-                this._tileLayers.forEach(l => l.setOptions({
-                    opacity: 0
-                }));
-            }
-        }
-
-        if(this._animation){
+        if (animation) {
             //Check to see if the options contain any animation options.
             let updateAnimation = false;
 
             Object.keys(options).forEach(key => {
-                switch(key){
+                switch (key) {
                     case 'tileLayerOptions':
                     case 'visible':
                         break;
                     default:
-                    updateAnimation = true;
-                    break;
+                        updateAnimation = true;
+                        break;
                 }
-            });       
+            });
 
-            if(updateAnimation){
-                this._animation.setOptions(options);
+            if (updateAnimation) {
+                animation.setOptions(options);
             }
         }
-    }    
+    }
 
     public onAdd(map: azmaps.Map): void {
-        this._map = map;
-        map.layers.add(this._tileLayers, this);
+        const self = this;
+        self._map = map;
+        map.layers.add(self._tileLayers, self);
     }
 
     public onRemove(): void {
-        this._map.layers.remove(this._tileLayers);
-        this._map = null;
+        const self = this;
+        self._map.layers.remove(self._tileLayers);
+        self._map = null;
     }
 
     /**
@@ -219,9 +233,9 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
         return [];
     }
 
-     /**
-     * @internal
-     */
+    /**
+    * @internal
+    */
     public _getLayerIds(): string[] {
         return [this.id];
     }
@@ -239,38 +253,39 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
     public _getSourceId() {
         return null;
     }
-    
+
     /**************************
     * Private functions
     ***************************/
 
     private _onFrame = (frameIdx: number): void => {
-        let o = this._options;
+        const self = this;
+        let o = self._options;
 
-        if(o.visible && o.tileLayerOptions && o.tileLayerOptions.length > 0 && frameIdx < o.tileLayerOptions.length) {
-            let m = this._map['map'];
-            let ct = this._currentTileLayer;
+        if (o.visible && o.tileLayerOptions && o.tileLayerOptions.length > 0 && frameIdx < o.tileLayerOptions.length) {
+            let m = self._map['map'];
+            let ct = self._currentTileLayer;
             let id: string;
 
-            if(ct){
+            if (ct) {
                 id = ct.getId();
 
                 //Use lower level options to change the opacity for more smoothness.
-                m.setPaintProperty(id, 'raster-opacity-transition', { duration: 0,  delay: 0});
+                m.setPaintProperty(id, 'raster-opacity-transition', { duration: 0, delay: 0 });
                 m.setPaintProperty(id, 'raster-opacity', 0);
-            } 
+            }
 
-            ct = this._tileLayers[frameIdx];
-            this._currentTileLayer = ct;
+            ct = self._tileLayers[frameIdx];
+            self._currentTileLayer = ct;
             id = ct.getId();
-            
+
             //Use lower level options to change the opacity for more smoothness.
-            m.setPaintProperty(id, 'raster-opacity-transition', { duration: 0,  delay: 0});
+            m.setPaintProperty(id, 'raster-opacity-transition', { duration: 0, delay: 0 });
             m.setPaintProperty(id, 'raster-opacity', o.tileLayerOptions[frameIdx].opacity);
         }
     }
 
     public _onAnimationProgress(timestamp: number): any {
-       return null;
+        return null;
     }
 }

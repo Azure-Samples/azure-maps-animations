@@ -571,7 +571,7 @@ MIT License
          * @param path Property path string.
          */
         Utils.getPropertyPath = function (path) {
-            return path.split("/");
+            return path.split('/');
         };
         /**
          * Sets a value on an object based on property path.
@@ -583,7 +583,7 @@ MIT License
             if (propertyPath.length > 1) {
                 var key = propertyPath.shift();
                 Utils.setValue(obj[key] =
-                    Object.prototype.toString.call(obj[key]) === "[object Object]" ? obj[key] : {}, propertyPath, value);
+                    Object.prototype.toString.call(obj[key]) === '[object Object]' ? obj[key] : {}, propertyPath, value);
             }
             else {
                 obj[propertyPath[0]] = value;
@@ -745,10 +745,11 @@ MIT License
             ***************************/
             this._animation = null;
             this._queue = [];
-            this._minFrameRate = 33; //roughly 30 frames per second is the fastest that the animation loop will update.
+            //Min frame rate
+            this._minFR = 33; //roughly 30 frames per second is the fastest that the animation loop will update.
             this._stopped = true;
             this._idCounter = 1234567890;
-            this._idLookupTable = {};
+            this._idTable = {};
             this._lastTime = performance.now();
             this.enable();
         }
@@ -757,16 +758,18 @@ MIT License
         ***************************/
         /** Stops all animations. */
         AnimationManager.prototype.disable = function () {
-            if (!this._stopped) {
-                this._stopped = true;
-                cancelAnimationFrame(this._animation);
+            var self = this;
+            if (!self._stopped) {
+                self._stopped = true;
+                cancelAnimationFrame(self._animation);
             }
         };
         /** Renables animations. Many will likely snap to the end of their animation. */
         AnimationManager.prototype.enable = function () {
-            if (this._stopped) {
-                this._stopped = false;
-                this._animation = requestAnimationFrame(this.animate.bind(this));
+            var self = this;
+            if (self._stopped) {
+                self._stopped = false;
+                self._animation = requestAnimationFrame(self._animate.bind(self));
             }
         };
         /**
@@ -774,14 +777,15 @@ MIT License
          * @param animatable The object to animate.
          */
         AnimationManager.prototype.add = function (animatable) {
+            var self = this;
             if (!animatable._id) {
-                animatable._id = this._getUuid();
+                animatable._id = self._getUuid();
             }
-            var animation = this._idLookupTable[animatable._id];
+            var animation = self._idTable[animatable._id];
             //Only add the animation to the queue if it isn't already in it.
             if (!animation) {
-                this._queue.push(animatable);
-                this._idLookupTable[animatable._id] = animatable;
+                self._queue.push(animatable);
+                self._idTable[animatable._id] = animatable;
             }
             return animatable._id;
         };
@@ -790,23 +794,28 @@ MIT License
          * @param id The ID of the animation to get.
          */
         AnimationManager.prototype.getById = function (id) {
-            return this._idLookupTable[id];
+            return this._idTable[id];
         };
         /**
          * Removes a object from the animation queue.
          * @param animatable The object to remove from the queue.
          */
         AnimationManager.prototype.remove = function (animatable) {
+            var self = this;
             //Verify animation is in queue.
-            if (animatable && this._idLookupTable[animatable._id]) {
-                //Loop through and find the index of the animation in the array.
-                for (var i = this._queue.length - 1; i >= 0; i--) {
-                    if (animatable._id === this._queue[i]._id) {
-                        //Remove it from the queue.
-                        this._queue = this._queue.splice(i, 1);
-                        //Remove it from the lookup table.
-                        this._idLookupTable[animatable._id] = undefined;
-                        break;
+            if (animatable) {
+                var id = animatable._id;
+                if (self._idTable[id]) {
+                    var q = self._queue;
+                    //Loop through and find the index of the animation in the array.
+                    for (var i = q.length - 1; i >= 0; i--) {
+                        if (id === q[i]._id) {
+                            //Remove it from the queue.
+                            self._queue = q.splice(i, 1);
+                            //Remove it from the lookup table.
+                            self._idTable[id] = undefined;
+                            break;
+                        }
                     }
                 }
             }
@@ -816,27 +825,29 @@ MIT License
          * @param id The ID of the animation to remove.
          */
         AnimationManager.prototype.removeById = function (id) {
-            this.remove(this._idLookupTable[id]);
+            this.remove(this._idTable[id]);
         };
         /****************************
         * Private functions
         ***************************/
         /** Loops through the queue and animates a frame for each animatable object. */
-        AnimationManager.prototype.animate = function () {
-            if (!this._stopped) {
+        AnimationManager.prototype._animate = function () {
+            var self = this;
+            if (!self._stopped) {
                 var t = performance.now();
-                if (t - this._lastTime >= this._minFrameRate) {
+                if (t - self._lastTime >= self._minFR) {
+                    var q = self._queue;
                     //Iterate backwards over queue incase the _onTriggerFrameAnimation asks to remove the animation. 
-                    for (var i = this._queue.length - 1; i >= 0; i--) {
+                    for (var i = q.length - 1; i >= 0; i--) {
                         try {
-                            this._queue[i]._onAnimationProgress(t);
+                            q[i]._onAnimationProgress(t);
                         }
-                        catch (e) { }
+                        catch (_a) { }
                     }
                     //Request the next frame of the animation.
-                    this._lastTime = t;
+                    self._lastTime = t;
                 }
-                this._animation = requestAnimationFrame(this.animate.bind(this));
+                self._animation = requestAnimationFrame(self._animate.bind(self));
             }
         };
         /** Retrieves a unique ID from the animation manager. */
@@ -878,8 +889,9 @@ MIT License
                 disposeOnComplete: false
             };
             _this._easing = Easings.linear;
-            _this._id = AnimationManager.instance.add(_this);
-            _this.setOptions(options);
+            var self = _this;
+            self._id = AnimationManager.instance.add(self);
+            self.setOptions(options);
             return _this;
         }
         /**************************
@@ -887,14 +899,15 @@ MIT License
         ***************************/
         /** Disposes the animation. */
         PlayableAnimation.prototype.dispose = function () {
-            this.stop();
-            AnimationManager.instance.remove(this);
-            this._options = null;
-            this._easing = null;
-            this._start = null;
-            this._onComplete = null;
-            this._id = undefined;
-            this._rawProgress = null;
+            var self = this;
+            self.stop();
+            AnimationManager.instance.remove(self);
+            self._options = null;
+            self._easing = null;
+            self._start = null;
+            self._onComplete = null;
+            self._id = undefined;
+            self._rawProgress = null;
         };
         /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
         PlayableAnimation.prototype.getDuration = function () {
@@ -915,16 +928,17 @@ MIT License
          * Plays the animation.
          */
         PlayableAnimation.prototype.play = function () {
-            if (this._rawProgress >= 1) {
+            var self = this;
+            if (self._rawProgress >= 1) {
                 //Animation is complete, restart.
-                this._rawProgress = 0;
+                self._rawProgress = 0;
             }
-            if (this._rawProgress > 0) {
+            if (self._rawProgress > 0) {
                 //Animation is paused, calculated offset start time of animation.
-                this._start = Utils.getStartTime(this._rawProgress, this._options.duration, this._options.speedMultiplier);
+                self._start = Utils.getStartTime(self._rawProgress, self._options.duration, self._options.speedMultiplier);
             }
             else {
-                this._start = performance.now();
+                self._start = performance.now();
             }
         };
         /**
@@ -939,61 +953,64 @@ MIT License
          * @param progress The progress of the animation to advance to. A value between 0 and 1.
          */
         PlayableAnimation.prototype.seek = function (progress) {
+            var self = this;
             if (typeof progress === 'number') {
-                var isPLaying = this.isPlaying();
+                var isPLaying = self.isPlaying();
                 if (isPLaying) {
-                    this.pause();
+                    self.pause();
                 }
-                this._rawProgress = Math.min(Math.max(progress, 0), 1) / this._options.speedMultiplier;
-                this._processFrame();
+                self._rawProgress = Math.min(Math.max(progress, 0), 1) / self._options.speedMultiplier;
+                self._processFrame();
                 if (isPLaying) {
-                    this.play();
+                    self.play();
                 }
             }
         };
         /** Sets the options of the animation. */
         PlayableAnimation.prototype.setOptions = function (options) {
             if (options) {
+                var self_1 = this;
+                var opt = self_1._options;
                 if (options.easing) {
                     if (typeof options.easing === 'string' && Easings[options.easing]) {
-                        this._easing = Easings[options.easing];
-                        this._options.easing = options.easing;
+                        self_1._easing = Easings[options.easing];
+                        opt.easing = options.easing;
                     }
                     else if (options.easing instanceof Function) {
-                        this._easing = options.easing;
-                        this._options.easing = options.easing;
+                        self_1._easing = options.easing;
+                        opt.easing = options.easing;
                     }
                 }
                 if (typeof options.loop === 'boolean') {
-                    this._options.loop = options.loop;
+                    opt.loop = options.loop;
                 }
                 if (typeof options.disposeOnComplete === 'boolean') {
-                    this._options.disposeOnComplete = options.disposeOnComplete;
+                    opt.disposeOnComplete = options.disposeOnComplete;
                 }
                 if (typeof options.reverse === 'boolean') {
-                    this._options.reverse = options.reverse;
+                    opt.reverse = options.reverse;
                 }
                 if (typeof options.speedMultiplier === 'number' && options.speedMultiplier > 0) {
-                    this._options.speedMultiplier = options.speedMultiplier;
+                    opt.speedMultiplier = options.speedMultiplier;
                 }
-                var hasDuration = typeof options.duration === 'number' && options.duration > 0 && this._options.duration !== options.duration;
+                var hasDuration = typeof options.duration === 'number' && options.duration > 0 && opt.duration !== options.duration;
                 var hasAutoPlay = typeof options.autoPlay === 'boolean';
                 if (hasDuration || hasAutoPlay) {
-                    var isPlaying = this.isPlaying();
+                    var isPlaying = self_1.isPlaying();
                     if (isPlaying) {
-                        this.pause();
+                        self_1.pause();
                     }
                     if (hasAutoPlay) {
-                        this._options.autoPlay = options.autoPlay || this._options.autoPlay;
+                        opt.autoPlay = options.autoPlay || opt.autoPlay;
                         if (!isPlaying && options.autoPlay) {
                             isPlaying = true;
                         }
                     }
                     if (hasDuration) {
-                        this._options.duration = options.duration || this._options.duration;
+                        opt.duration = options.duration || opt.duration;
                     }
                     if (isPlaying) {
-                        this.play();
+                        self_1.play();
                     }
                 }
             }
@@ -1002,28 +1019,31 @@ MIT License
          * Stops the animation and jumps back to the end of the animation.
          */
         PlayableAnimation.prototype.stop = function () {
+            var self = this;
             //Jump to the end of the animation. 
-            this._rawProgress = 1;
-            this._processFrame();
-            this._start = null;
+            self._rawProgress = 1;
+            self._processFrame();
+            self._start = null;
         };
         /**
          * Stops the animation and jumps back to the beginning of the animation.
          */
         PlayableAnimation.prototype.reset = function () {
+            var self = this;
             //Jump to the beginning of the animation. 
-            this._start = null;
-            this._rawProgress = 0;
-            this._processFrame();
+            self._start = null;
+            self._rawProgress = 0;
+            self._processFrame();
         };
         /**
          * Callback function that contains the animation frame logic.
          * @param progress The progress of the animation where 0 is start and 1 is the end.
          */
         PlayableAnimation.prototype._onAnimationProgress = function (timestamp) {
-            if (this._start) {
-                this._rawProgress = Utils.getProgress(timestamp, this._start, this._options.duration, this._options.speedMultiplier);
-                this._processFrame();
+            var self = this;
+            if (self._start) {
+                self._rawProgress = Utils.getProgress(timestamp, self._start, self._options.duration, self._options.speedMultiplier);
+                self._processFrame();
             }
         };
         /**************************
@@ -1033,41 +1053,43 @@ MIT License
          * Processes the animation frame for the raw progress.
          */
         PlayableAnimation.prototype._processFrame = function () {
-            if (typeof this._id !== 'undefined') {
-                var progress = this._rawProgress || 0;
+            var self = this;
+            var opt = self._options;
+            if (typeof self._id !== 'undefined') {
+                var progress = self._rawProgress || 0;
                 //Animation reached the end.
                 if (progress >= 1) {
-                    if (this._options.loop) {
+                    if (opt.loop) {
                         //Restart the animation.
-                        this._rawProgress = 0;
-                        this._start = performance.now();
+                        self._rawProgress = 0;
+                        self._start = performance.now();
                     }
                     else {
                         //Stop animating. 
-                        this._rawProgress = 1;
-                        this._start = null;
-                        if (this._onComplete) {
-                            this._onComplete();
+                        self._rawProgress = 1;
+                        self._start = null;
+                        if (self._onComplete) {
+                            self._onComplete();
                         }
                     }
                 }
-                var playProgress = (this._options.reverse) ? 1 - this._rawProgress : this._rawProgress;
-                if (this._easing) {
-                    progress = this._easing(playProgress);
+                var playProgress = (opt.reverse) ? 1 - self._rawProgress : self._rawProgress;
+                if (self._easing) {
+                    progress = self._easing(playProgress);
                 }
-                var state = this.onAnimationProgress(progress);
+                var state = self.onAnimationProgress(progress);
                 var eventArgs = Object.assign({
                     progress: playProgress,
                     easingProgress: progress,
-                    animation: this
+                    animation: self
                 }, state || {});
-                this._invokeEvent('onprogress', Object.assign({ type: 'onprogress' }, eventArgs));
+                self._invokeEvent('onprogress', Object.assign({ type: 'onprogress' }, eventArgs));
                 //Check to see if the animation is complete.
-                if (this._start === null) {
-                    this._invokeEvent('oncomplete', Object.assign({ type: 'oncomplete' }, eventArgs));
+                if (self._start === null) {
+                    self._invokeEvent('oncomplete', Object.assign({ type: 'oncomplete' }, eventArgs));
                 }
-                if (this._options.disposeOnComplete) {
-                    this.dispose();
+                if (opt.disposeOnComplete) {
+                    self.dispose();
                 }
             }
         };
@@ -1085,33 +1107,35 @@ MIT License
          */
         function FrameBasedAnimationTimer(numberOfFrames, onFrame, options) {
             var _this = _super.call(this, options) || this;
-            _this._numberOfFrames = 0;
-            _this._currentFrameIdx = -1;
-            _this._numberOfFrames = numberOfFrames;
-            _this._onFrame = onFrame;
+            _this._numFrames = 0;
+            _this._curFrameIdx = -1;
+            var self = _this;
+            self._numFrames = numberOfFrames;
+            self._onFrame = onFrame;
             if (options && options.autoPlay) {
-                _this.play();
+                self.play();
             }
             return _this;
         }
         /** Gets the current frame index of the animation. Returns -1 if animation hasn't started, or if there is 0 frames. */
         FrameBasedAnimationTimer.prototype.getCurrentFrameIdx = function () {
-            if (this._numberOfFrames <= 0) {
+            if (this._numFrames <= 0) {
                 return -1;
             }
-            return this._currentFrameIdx;
+            return this._curFrameIdx;
         };
         /** Gets the number of frames in the animation. */
         FrameBasedAnimationTimer.prototype.getNumberOfFrames = function () {
-            return this._numberOfFrames;
+            return this._numFrames;
         };
         /**
          * Sets the frame index of the animation.
          * @param frameIdx The frame index to advance to.
          */
         FrameBasedAnimationTimer.prototype.setFrameIdx = function (frameIdx) {
-            if (frameIdx >= 0 || frameIdx < this._numberOfFrames) {
-                this.seek(this._numberOfFrames / frameIdx);
+            var self = this;
+            if (frameIdx >= 0 || frameIdx < self._numFrames) {
+                self.seek(self._numFrames / frameIdx);
             }
         };
         /**
@@ -1119,24 +1143,26 @@ MIT License
          * @param numberOfFrames The number of frames in the animation.
          */
         FrameBasedAnimationTimer.prototype.setNumberOfFrames = function (numberOfFrames) {
-            if (typeof numberOfFrames === 'number' && this._numberOfFrames !== numberOfFrames) {
-                this._numberOfFrames = Math.max(numberOfFrames, 0);
-                this._currentFrameIdx = (numberOfFrames < this._currentFrameIdx) ? this._currentFrameIdx : 0;
+            var self = this;
+            if (typeof numberOfFrames === 'number' && self._numFrames !== numberOfFrames) {
+                self._numFrames = Math.max(numberOfFrames, 0);
+                self._curFrameIdx = (numberOfFrames < self._curFrameIdx) ? self._curFrameIdx : 0;
                 if (numberOfFrames <= 0) {
-                    this._currentFrameIdx = -1;
+                    self._curFrameIdx = -1;
                 }
-                this._triggerFrame(this._currentFrameIdx);
+                self._triggerFrame(self._curFrameIdx);
             }
         };
         /////////////////////////////
         // Abstract method override
         ////////////////////////////
         FrameBasedAnimationTimer.prototype.onAnimationProgress = function (progress) {
-            var nf = this._numberOfFrames;
+            var self = this;
+            var nf = self._numFrames;
             if (nf > 0) {
                 //Need to get even spaced frame periods.
                 var frameIdx = Math.round(progress * nf - 0.49999999999999999999999);
-                if (frameIdx !== this._currentFrameIdx) {
+                if (frameIdx !== self._curFrameIdx) {
                     //When progress exactly 1, the frameIdx will be equal to the number of frames, but we want one less. This means that the last frame will be slightly longer (a couple of ms in a most cases).
                     if (frameIdx === nf) {
                         frameIdx--;
@@ -1145,23 +1171,24 @@ MIT License
                         //Unlikely to happen, but an extra check to be safe. Ignore any frames that are negative.
                         frameIdx = -1;
                     }
-                    this._triggerFrame(frameIdx);
+                    self._triggerFrame(frameIdx);
                     return { frameIdx: frameIdx };
                 }
             }
             return null;
         };
         FrameBasedAnimationTimer.prototype._triggerFrame = function (frameIdx) {
-            if (this._onFrame && frameIdx !== -1) {
-                this._onFrame(frameIdx);
+            var self = this;
+            if (self._onFrame && frameIdx !== -1) {
+                self._onFrame(frameIdx);
             }
-            this._currentFrameIdx = frameIdx;
+            self._curFrameIdx = frameIdx;
             if (frameIdx !== -1) {
-                this._invokeEvent('onframe', {
+                self._invokeEvent('onframe', {
                     type: 'onFrame',
                     frameIdx: frameIdx,
-                    animation: this,
-                    numFrames: this._numberOfFrames
+                    animation: self,
+                    numFrames: self._numFrames
                 });
             }
         };
@@ -1192,10 +1219,11 @@ MIT License
             * Private functions
             ***************************/
             _this._onFrame = function (frameIdx) {
-                var o = _this._options;
+                var self = _this;
+                var o = self._options;
                 if (o.visible && o.tileLayerOptions && o.tileLayerOptions.length > 0 && frameIdx < o.tileLayerOptions.length) {
-                    var m = _this._map['map'];
-                    var ct = _this._currentTileLayer;
+                    var m = self._map['map'];
+                    var ct = self._currentTileLayer;
                     var id = void 0;
                     if (ct) {
                         id = ct.getId();
@@ -1203,8 +1231,8 @@ MIT License
                         m.setPaintProperty(id, 'raster-opacity-transition', { duration: 0, delay: 0 });
                         m.setPaintProperty(id, 'raster-opacity', 0);
                     }
-                    ct = _this._tileLayers[frameIdx];
-                    _this._currentTileLayer = ct;
+                    ct = self._tileLayers[frameIdx];
+                    self._currentTileLayer = ct;
                     id = ct.getId();
                     //Use lower level options to change the opacity for more smoothness.
                     m.setPaintProperty(id, 'raster-opacity-transition', { duration: 0, delay: 0 });
@@ -1286,52 +1314,59 @@ MIT License
          * @param options The options to apply to the layer.
          */
         AnimatedTileLayer.prototype.setOptions = function (options) {
-            var _this = this;
-            if (options.tileLayerOptions) {
-                if (this._tileLayers.length > 0) {
-                    if (this._map) {
-                        this._map.layers.remove(this._tileLayers);
+            var self = this;
+            var animation = self._animation;
+            var map = self._map;
+            var opt = self._options;
+            var tileLayers = self._tileLayers;
+            if (options) {
+                if (options.tileLayerOptions) {
+                    if (tileLayers.length > 0) {
+                        if (map) {
+                            map.layers.remove(tileLayers);
+                        }
+                        tileLayers = [];
+                        self._tileLayers = tileLayers;
+                        self._currentTileLayer = null;
                     }
-                    this._tileLayers = [];
-                    this._currentTileLayer = null;
-                }
-                options.tileLayerOptions.forEach(function (x) {
-                    //Do not allow fade duration or visble to be changed in individual layers.
-                    x.fadeDuration = 0;
-                    x.visible = true;
-                    //Make opacity 0 by default when rendering the layer. Toggling the opacity is smoother than visble for animations.
-                    //Additionally, by having opacity set to 0, the map will still load the tiles, even if the layer isn't visible yet. 
-                    //This is an easy way to pre-load tiles for better performance.
-                    _this._tileLayers.push(new azmaps.layer.TileLayer(Object.assign({}, x, { opacity: 0 })));
-                });
-                if (this._map) {
-                    this._map.layers.add(this._tileLayers, this);
-                }
-                this._options.tileLayerOptions = options.tileLayerOptions;
-                if (this._animation) {
-                    this._animation.setNumberOfFrames(this._options.tileLayerOptions.length);
-                }
-                var frameIdx = (this._animation) ? this._animation.getCurrentFrameIdx() : 0;
-                if (frameIdx >= 0) {
-                    this._currentTileLayer = this._tileLayers[frameIdx];
-                    this._currentTileLayer.setOptions({ fadeDuration: 0, visible: true });
-                }
-            }
-            if (typeof options.visible === 'boolean') {
-                this._options.visible = options.visible;
-                if (options.visible) {
-                    var frameIdx_1 = this._animation.getCurrentFrameIdx();
-                    if (options.tileLayerOptions.length > 0) {
-                        this._currentTileLayer.setOptions({ fadeDuration: 0, opacity: options.tileLayerOptions[frameIdx_1].opacity });
+                    options.tileLayerOptions.forEach(function (x) {
+                        //Do not allow fade duration or visble to be changed in individual layers.
+                        x.fadeDuration = 0;
+                        x.visible = true;
+                        //Make opacity 0 by default when rendering the layer. Toggling the opacity is smoother than visble for animations.
+                        //Additionally, by having opacity set to 0, the map will still load the tiles, even if the layer isn't visible yet. 
+                        //This is an easy way to pre-load tiles for better performance.
+                        tileLayers.push(new azmaps.layer.TileLayer(Object.assign({}, x, { opacity: 0 })));
+                    });
+                    if (map) {
+                        map.layers.add(tileLayers, self);
+                    }
+                    opt.tileLayerOptions = options.tileLayerOptions;
+                    if (animation) {
+                        animation.setNumberOfFrames(opt.tileLayerOptions.length);
+                    }
+                    var frameIdx = (animation) ? self._animation.getCurrentFrameIdx() : 0;
+                    if (frameIdx >= 0) {
+                        self._currentTileLayer = tileLayers[frameIdx];
+                        self._currentTileLayer.setOptions({ fadeDuration: 0, visible: true });
                     }
                 }
-                else {
-                    this._tileLayers.forEach(function (l) { return l.setOptions({
-                        opacity: 0
-                    }); });
+                if (typeof options.visible === 'boolean') {
+                    opt.visible = options.visible;
+                    if (options.visible) {
+                        var frameIdx = animation.getCurrentFrameIdx();
+                        if (options.tileLayerOptions.length > 0) {
+                            self._currentTileLayer.setOptions({ fadeDuration: 0, opacity: options.tileLayerOptions[frameIdx].opacity });
+                        }
+                    }
+                    else {
+                        tileLayers.forEach(function (l) { return l.setOptions({
+                            opacity: 0
+                        }); });
+                    }
                 }
             }
-            if (this._animation) {
+            if (animation) {
                 //Check to see if the options contain any animation options.
                 var updateAnimation_1 = false;
                 Object.keys(options).forEach(function (key) {
@@ -1345,17 +1380,19 @@ MIT License
                     }
                 });
                 if (updateAnimation_1) {
-                    this._animation.setOptions(options);
+                    animation.setOptions(options);
                 }
             }
         };
         AnimatedTileLayer.prototype.onAdd = function (map) {
-            this._map = map;
-            map.layers.add(this._tileLayers, this);
+            var self = this;
+            self._map = map;
+            map.layers.add(self._tileLayers, self);
         };
         AnimatedTileLayer.prototype.onRemove = function () {
-            this._map.layers.remove(this._tileLayers);
-            this._map = null;
+            var self = this;
+            self._map.layers.remove(self._tileLayers);
+            self._map = null;
         };
         /**
          * @internal
@@ -1414,10 +1451,13 @@ MIT License
             ***************************/
             _this._height = 200;
             if (shapes && shapes.length > 0) {
-                _this._shapes = shapes;
-                _this._x0 = [];
-                _this._y0 = [];
-                _this._height = (typeof height === 'number' && height > 0) ? height : _this._height;
+                var self_1 = _this;
+                self_1._shapes = shapes;
+                var x0 = [];
+                self_1._x0 = x0;
+                var y0 = [];
+                self_1._y0 = y0;
+                self_1._height = (typeof height === 'number' && height > 0) ? height : self_1._height;
                 var needsAdding = [];
                 var offset = void 0;
                 var ds = void 0;
@@ -1431,38 +1471,38 @@ MIT License
                     markers = map.markers.getMarkers();
                 }
                 //Extract the offsets for each shape.
-                for (var i = 0, len = _this._shapes.length; i < len; i++) {
+                for (var i = 0, len = shapes.length; i < len; i++) {
                     offset = null;
-                    if (_this._shapes[i] instanceof azmaps.Shape) {
-                        var prop = _this._shapes[i].getProperties();
+                    if (shapes[i] instanceof azmaps.Shape) {
+                        var prop = shapes[i].getProperties();
                         offset = prop['offset'];
                     }
                     else {
-                        offset = _this._shapes[i].getOptions().pixelOffset;
+                        offset = shapes[i].getOptions().pixelOffset;
                     }
                     if (offset && Array.isArray(offset) && offset.length >= 2) {
-                        _this._x0.push(offset[0]);
-                        _this._y0.push(offset[1]);
+                        x0.push(offset[0]);
+                        y0.push(offset[1]);
                     }
                     else {
-                        _this._x0.push(0);
-                        _this._y0.push(0);
+                        x0.push(0);
+                        y0.push(0);
                         offset = [0, 0];
                     }
-                    offset[1] -= _this._height;
-                    if (_this._shapes[i] instanceof azmaps.Shape) {
-                        var s = _this._shapes[i];
+                    offset[1] -= self_1._height;
+                    if (shapes[i] instanceof azmaps.Shape) {
+                        var s = shapes[i];
                         s.setProperties(Object.assign(s.getProperties(), {
                             offset: offset,
                             opacity: 0
                         }));
                         //Add the shape to the data source if it isn't already added.
-                        if (ds && ds.getShapeById(_this._shapes[i].getId()) === null) {
-                            needsAdding.push(_this._shapes[i]);
+                        if (ds && ds.getShapeById(shapes[i].getId()) === null) {
+                            needsAdding.push(shapes[i]);
                         }
                     }
                     else {
-                        var m = _this._shapes[i];
+                        var m = shapes[i];
                         (m).setOptions({ pixelOffset: offset, visible: false });
                         if (map && markers && markers.indexOf(m) === -1) {
                             map.markers.add(m);
@@ -1473,7 +1513,7 @@ MIT License
                     ds.add(needsAdding);
                 }
                 if (options && options.autoPlay) {
-                    _this.play();
+                    self_1.play();
                 }
             }
             else {
@@ -1489,20 +1529,22 @@ MIT License
          * @param timestamp Timestamp from `performance.now()` that for the animation frame relative to the start time.
          */
         DropAnimation.prototype.onAnimationProgress = function (progress) {
+            var self = this;
+            var shapes = self._shapes;
             var offset;
             var y1;
-            for (var i = 0, len = this._shapes.length; i < len; i++) {
-                y1 = this._y0[i] - this._height * (1 - progress);
-                offset = [this._x0[i], y1];
-                if (this._shapes[i] instanceof azmaps.Shape) {
-                    var s = this._shapes[i];
+            for (var i = 0, len = shapes.length; i < len; i++) {
+                y1 = self._y0[i] - self._height * (1 - progress);
+                offset = [self._x0[i], y1];
+                if (shapes[i] instanceof azmaps.Shape) {
+                    var s = shapes[i];
                     s.setProperties(Object.assign(s.getProperties(), {
                         offset: offset,
                         opacity: (progress !== 0) ? 1 : 0
                     }));
                 }
                 else {
-                    this._shapes[i].setOptions({ pixelOffset: offset, visible: progress !== 0 });
+                    shapes[i].setOptions({ pixelOffset: offset, visible: progress !== 0 });
                 }
             }
             return null;
@@ -1542,35 +1584,35 @@ MIT License
         /** Sets the options of the animation. */
         MapPathPlayableAnaimation.prototype.setOptions = function (options) {
             if (options) {
-                var no = {};
+                var self_1 = this;
+                var opt = self_1._pathOptions;
                 if (typeof options.duration === 'number' && options.duration > 0) {
-                    no.duration = options.duration || this._pathOptions.duration;
+                    opt.duration = options.duration || opt.duration;
                 }
                 if (typeof options.captureMetadata === 'boolean') {
-                    no.captureMetadata = options.captureMetadata;
+                    opt.captureMetadata = options.captureMetadata;
                 }
                 if (typeof options.geodesic === 'boolean') {
-                    no.geodesic = options.geodesic;
+                    opt.geodesic = options.geodesic;
                 }
                 if (typeof options.reverse === 'boolean') {
-                    no.reverse = options.reverse;
+                    opt.reverse = options.reverse;
                 }
                 if (typeof options.pitch === 'number') {
-                    no.pitch = options.pitch;
+                    opt.pitch = options.pitch;
                 }
                 if (typeof options.zoom === 'number') {
-                    no.zoom = options.zoom;
+                    opt.zoom = options.zoom;
                 }
                 if (typeof options.rotate === 'boolean') {
-                    no.rotate = options.rotate;
+                    opt.rotate = options.rotate;
                 }
                 if (typeof options.rotationOffset === 'number') {
-                    no.rotationOffset = options.rotationOffset;
+                    opt.rotationOffset = options.rotationOffset;
                 }
                 if (options.map || options.map === null) {
-                    no.map = options.map;
+                    opt.map = options.map;
                 }
-                Object.assign(this._pathOptions, no);
                 _super.prototype.setOptions.call(this, options);
             }
         };
@@ -1578,31 +1620,32 @@ MIT License
         * Protected functions
         ***************************/
         MapPathPlayableAnaimation.prototype._setMapCamera = function (position, heading, animate) {
-            if (this._pathOptions.map && position) {
+            var opt = this._pathOptions;
+            if (opt.map && position) {
                 var cam = {
                     center: position
                 };
-                if (typeof this._pathOptions.pitch === 'number') {
-                    cam.pitch = this._pathOptions.pitch;
+                if (typeof opt.pitch === 'number') {
+                    cam.pitch = opt.pitch;
                 }
-                if (typeof this._pathOptions.zoom === 'number') {
-                    cam.zoom = this._pathOptions.zoom;
+                if (typeof opt.zoom === 'number') {
+                    cam.zoom = opt.zoom;
                 }
-                if (this._pathOptions.rotate && typeof heading === 'number') {
-                    cam.bearing = (this._pathOptions.reverse) ? heading + 180 : heading;
-                    if (typeof this._pathOptions.rotationOffset === 'number') {
-                        cam.bearing += this._pathOptions.rotationOffset;
+                if (opt.rotate && typeof heading === 'number') {
+                    cam.bearing = (opt.reverse) ? heading + 180 : heading;
+                    if (typeof opt.rotationOffset === 'number') {
+                        cam.bearing += opt.rotationOffset;
                     }
                 }
                 if (animate) {
                     cam.type = 'fly';
-                    cam.duration = Math.min(60, this._pathOptions.duration);
+                    cam.duration = Math.min(60, opt.duration);
                 }
                 else {
                     cam.type = 'jump';
                 }
                 //Set the initial view of the map.
-                this._pathOptions.map.setCamera(cam);
+                opt.map.setCamera(cam);
             }
         };
         MapPathPlayableAnaimation.prototype.onAnimationProgress = function (progress) {
@@ -1624,17 +1667,20 @@ MIT License
          */
         function PointTranslateAnimation(shape, newPosition, options) {
             var _this = _super.call(this) || this;
+            var self = _this;
+            var pos;
             if (shape instanceof azmaps.Shape) {
-                _this._originPosition = shape.getCoordinates();
+                pos = shape.getCoordinates();
             }
             else {
-                _this._originPosition = shape.getOptions().position;
+                pos = shape.getOptions().position;
             }
-            _this._shape = shape;
-            _this._destinationPosition = newPosition;
-            _this.setOptions(options);
+            self._originPosition = pos;
+            self._shape = shape;
+            self._destinationPosition = newPosition;
+            self.setOptions(options);
             if (options && options.autoPlay) {
-                _this.play();
+                self.play();
             }
             return _this;
         }
@@ -1646,18 +1692,23 @@ MIT License
             if (options) {
                 _super.prototype.setOptions.call(this, options);
             }
-            if (this._originPosition && this._destinationPosition) {
-                if (this._pathOptions.geodesic) {
+            var self = this;
+            var oPos = self._originPosition;
+            var destPos = self._destinationPosition;
+            var mapMath = azmaps.math;
+            var azPixel = azmaps.Pixel;
+            if (oPos && destPos) {
+                if (self._pathOptions.geodesic) {
                     //Calculate the distance and heading between the points. 
-                    this._dx = azmaps.math.getDistanceTo(this._originPosition, this._destinationPosition);
-                    this._heading = azmaps.math.getHeading(this._originPosition, this._destinationPosition);
+                    self._dx = mapMath.getDistanceTo(oPos, destPos);
+                    self._heading = mapMath.getHeading(oPos, destPos);
                 }
                 else {
                     //Calculate the mercator pixels of the coordinates at zoom level 21.
-                    var pixels = azmaps.math.mercatorPositionsToPixels([this._originPosition, this._destinationPosition], 21);
-                    this._originPixel = pixels[0];
+                    var pixels = mapMath.mercatorPositionsToPixels([oPos, destPos], 21);
+                    self._originPixel = pixels[0];
                     //Ensure that the shortest path is taken between coordinates.
-                    if (Math.abs(this._originPosition[0] - this._destinationPosition[0]) > 180) {
+                    if (Math.abs(oPos[0] - destPos[0]) > 180) {
                         var mapWidth = Math.pow(2, 21) * 512;
                         if (pixels[0][0] > pixels[1][0]) {
                             pixels[1][0] += mapWidth;
@@ -1667,12 +1718,12 @@ MIT License
                         }
                     }
                     //Calculate the distance and heading between the pixels. 
-                    this._dx = azmaps.Pixel.getDistance(pixels[0], pixels[1]);
-                    this._heading = azmaps.Pixel.getHeading(pixels[0], pixels[1]);
+                    self._dx = azPixel.getDistance(pixels[0], pixels[1]);
+                    self._heading = azPixel.getHeading(pixels[0], pixels[1]);
                 }
-                if (this._pathOptions.captureMetadata) {
-                    Utils.setMetadata(this._shape, {
-                        heading: this._heading
+                if (self._pathOptions.captureMetadata) {
+                    Utils.setMetadata(self._shape, {
+                        heading: self._heading
                     });
                 }
             }
@@ -1682,35 +1733,41 @@ MIT License
          * @param progress The progress of the animation where 0 is start and 1 is the end.
          */
         PointTranslateAnimation.prototype.onAnimationProgress = function (progress) {
-            if (this._originPosition && this._destinationPosition && this._pathOptions) {
+            var self = this;
+            var oPos = self._originPosition;
+            var heading = self._heading;
+            var destPos = self._destinationPosition;
+            var mapMath = azmaps.math;
+            var opt = self._pathOptions;
+            if (oPos && destPos && opt) {
                 var pos = void 0;
                 var animateCamera = false;
                 if (progress === 1) {
                     //Animation is done.
-                    pos = this._destinationPosition;
+                    pos = destPos;
                 }
                 else if (progress === 0) {
                     //Restart animation.
-                    pos = this._originPosition;
+                    pos = oPos;
                 }
                 else {
-                    var dx = this._dx * progress;
+                    var dx = self._dx * progress;
                     //Calculate the coordinate part way between the origin and destination.
-                    if (this._pathOptions.geodesic) {
-                        pos = azmaps.math.getDestination(this._originPosition, this._heading, dx);
+                    if (opt.geodesic) {
+                        pos = mapMath.getDestination(oPos, heading, dx);
                     }
                     else {
-                        pos = azmaps.math.mercatorPixelsToPositions([azmaps.Pixel.getDestination(this._originPixel, this._heading, dx)], 21)[0];
+                        pos = mapMath.mercatorPixelsToPositions([azmaps.Pixel.getDestination(self._originPixel, heading, dx)], 21)[0];
                     }
                     animateCamera = true;
                 }
-                Utils.setCoordinates(this._shape, pos);
-                if (this._pathOptions.map) {
-                    this._setMapCamera(pos, this._heading, animateCamera);
+                Utils.setCoordinates(self._shape, pos);
+                if (opt.map) {
+                    self._setMapCamera(pos, heading, animateCamera);
                 }
                 return {
                     position: pos,
-                    heading: this._heading
+                    heading: heading
                 };
             }
             return null;
@@ -1726,14 +1783,15 @@ MIT License
         ***************************/
         function PathAnimation(path, shape, options) {
             var _this = _super.call(this) || this;
-            _this._shape = shape;
-            _this._positions = path;
-            _this.setOptions(Object.assign({
+            var self = _this;
+            self._shape = shape;
+            self._positions = path;
+            self.setOptions(Object.assign({
                 rotate: true,
                 rotationOffset: 0
             }, options || {}));
             if (options && options.autoPlay) {
-                _this.play();
+                self.play();
             }
             return _this;
         }
@@ -1742,42 +1800,42 @@ MIT License
         ***************************/
         /** Gets the animation options. */
         PathAnimation.prototype.dispose = function () {
-            this._totalLength = null;
-            this._positions = null;
-            this._pixels = null;
-            this._distances = null;
-            this._headings = null;
-            this._shape = null;
+            var _this = this;
+            Object.keys(this).forEach(function (k) {
+                _this[k] = undefined;
+            });
             _super.prototype.dispose.call(this);
         };
         /** Sets the options of the animation. */
         PathAnimation.prototype.setOptions = function (options) {
+            var self = this;
             if (options) {
                 _super.prototype.setOptions.call(this, options);
             }
-            var isPlaying = this.isPlaying();
+            var isPlaying = self.isPlaying();
             if (isPlaying) {
-                this.pause();
+                self.pause();
             }
-            if (this._positions) {
+            if (self._positions) {
                 var tl = 0;
                 var distances = [];
                 var heading = [];
-                var pos = this._positions;
+                var pos = self._positions;
+                var mapMath = azmaps.math;
                 //Calculate the distances and headings between the positions.
-                if (this._pathOptions.geodesic) {
+                if (self._pathOptions.geodesic) {
                     for (var i = 1, len = pos.length; i < len; i++) {
-                        var d = azmaps.math.getDistanceTo(pos[i - 1], pos[i]);
+                        var d = mapMath.getDistanceTo(pos[i - 1], pos[i]);
                         tl += d;
                         distances.push(d);
-                        var h = azmaps.math.getHeading(pos[i - 1], pos[i]);
+                        var h = mapMath.getHeading(pos[i - 1], pos[i]);
                         heading.push(h);
                     }
                 }
                 else {
                     //Calculate the mercator pixels of the coordinates at zoom level 21.
-                    var pixels = azmaps.math.mercatorPositionsToPixels(pos, 21);
-                    this._pixels = pixels;
+                    var pixels = mapMath.mercatorPositionsToPixels(pos, 21);
+                    self._pixels = pixels;
                     for (var i = 1, len = pixels.length; i < len; i++) {
                         var d = azmaps.Pixel.getDistance(pixels[i - 1], pixels[i]);
                         tl += d;
@@ -1786,15 +1844,15 @@ MIT License
                         heading.push(h);
                     }
                 }
-                this._totalLength = tl;
-                this._distances = distances;
-                this._headings = heading;
-                if (this._pathOptions.captureMetadata) {
-                    Utils.setMetadata(this._shape, { heading: this._headings[0] });
+                self._totalLength = tl;
+                self._distances = distances;
+                self._headings = heading;
+                if (self._pathOptions.captureMetadata) {
+                    Utils.setMetadata(self._shape, { heading: self._headings[0] });
                 }
             }
             if (isPlaying) {
-                this.play();
+                self.play();
             }
         };
         /**
@@ -1802,28 +1860,30 @@ MIT License
          * @param progress The progress of the animation where 0 is start and 1 is the end.
          */
         PathAnimation.prototype.onAnimationProgress = function (progress) {
+            var self = this;
             var pos;
             var heading;
-            var shape = this._shape;
-            var sourcePos = this._positions;
-            var headings = this._headings;
-            var distances = this._distances;
-            var pathOptions = this._pathOptions;
-            var totalLength = this._totalLength;
+            var shape = self._shape;
+            var sourcePos = self._positions;
+            var headings = self._headings;
+            var distances = self._distances;
+            var pathOptions = self._pathOptions;
+            var totalLength = self._totalLength;
+            var mapMath = azmaps.math;
             if (progress === 1) {
                 //Animation is done.
                 pos = sourcePos[sourcePos.length - 1];
                 heading = (headings.length > 0) ? headings[headings.length - 1] : undefined;
                 if (pathOptions.map) {
-                    this._setMapCamera(pos, heading, false);
+                    self._setMapCamera(pos, heading, false);
                 }
-                Utils.setCoordinates(shape, pos, positions);
+                Utils.setCoordinates(shape, pos, sourcePos);
             }
             else if (progress === 0) {
                 pos = sourcePos[0];
                 heading = (headings.length > 0) ? headings[0] : undefined;
                 if (pathOptions.map) {
-                    this._setMapCamera(pos, heading, false);
+                    self._setMapCamera(pos, heading, false);
                 }
                 Utils.setCoordinates(shape, pos, [pos, pos]);
             }
@@ -1846,7 +1906,7 @@ MIT License
                             if (travelled + distances[i] >= dx) {
                                 heading = headings[i];
                                 positions = sourcePos.slice(0, i + 1);
-                                positions.push(azmaps.math.getDestination(sourcePos[i], heading, dx - travelled));
+                                positions.push(mapMath.getDestination(sourcePos[i], heading, dx - travelled));
                                 break;
                             }
                             else {
@@ -1857,18 +1917,18 @@ MIT License
                 }
                 else {
                     var px = null;
-                    var pixels = this._pixels;
+                    var pixels = self._pixels;
                     if (dx > totalLength) {
                         heading = headings[headings.length - 1];
                         px = Utils.getPixelDestination(pixels[pixels.length - 1], heading, dx - totalLength);
                         positions = sourcePos.slice(0);
-                        positions.push((azmaps.math.mercatorPixelsToPositions([px], 21)[0]));
+                        positions.push(mapMath.mercatorPixelsToPositions([px], 21)[0]);
                     }
                     else if (dx < 0) {
                         heading = headings[0];
                         px = Utils.getPixelDestination(pixels[0], heading, dx);
                         positions = sourcePos.slice(0, 1);
-                        positions.push(azmaps.math.mercatorPixelsToPositions([px], 21)[0]);
+                        positions.push(mapMath.mercatorPixelsToPositions([px], 21)[0]);
                     }
                     else {
                         var travelled = 0;
@@ -1877,7 +1937,7 @@ MIT License
                                 heading = headings[i];
                                 px = Utils.getPixelDestination(pixels[i], heading, dx - travelled);
                                 positions = sourcePos.slice(0, i + 1);
-                                positions.push(azmaps.math.mercatorPixelsToPositions([px], 21)[0]);
+                                positions.push(mapMath.mercatorPixelsToPositions([px], 21)[0]);
                                 break;
                             }
                             else {
@@ -1890,7 +1950,7 @@ MIT License
                     pos = positions[positions.length - 1];
                     if (pathOptions.map) {
                         //Animate to the next view.
-                        this._setMapCamera(pos, heading, positions.length > 2);
+                        self._setMapCamera(pos, heading, positions.length > 2);
                     }
                     Utils.setCoordinates(shape, pos, positions);
                 }
@@ -1936,39 +1996,42 @@ MIT License
                 });
             }
             if (areEqual) {
-                this._constantPositions = toRing;
+                this._constPos = toRing;
             }
             else {
-                this._interpolator = flubber.interpolate(fromRing, toRing, {
+                this._interp = flubber.interpolate(fromRing, toRing, {
                     string: false
                 });
             }
         }
         RingInterpolator.prototype.interpolate = function (progress) {
-            if (this._constantPositions) {
-                return this._constantPositions;
+            var self = this;
+            if (self._constPos) {
+                return self._constPos;
             }
-            return this._interpolator(progress);
+            return self._interp(progress);
         };
         return RingInterpolator;
     }());
 
     var SimpleGeometryInterpolator = /** @class */ (function () {
         function SimpleGeometryInterpolator(fromGeometry, toGeometry) {
-            this._interpolators = [];
+            this._interps = [];
             this._areSame = false;
+            var self = this;
             if (fromGeometry.type === 'MultiPolygon') {
                 throw 'Only simple geometries supported.';
             }
-            this._fromGeometry = fromGeometry;
-            this._toGeometry = toGeometry;
-            this._areSame = (this._fromGeometry.type === this._toGeometry.type && JSON.parse(JSON.stringify(this._fromGeometry.coordinates)) === JSON.parse(JSON.stringify(this._toGeometry.coordinates)));
-            this._initInterpolators();
+            self._fromGeom = fromGeometry;
+            self._toGeom = toGeometry;
+            self._areSame = (fromGeometry.type === toGeometry.type && JSON.parse(JSON.stringify(fromGeometry.coordinates)) === JSON.parse(JSON.stringify(toGeometry.coordinates)));
+            self._initInterps();
         }
         SimpleGeometryInterpolator.prototype.interpolate = function (progress) {
-            var fg = this._fromGeometry;
-            var tg = this._toGeometry;
-            if (this._areSame) {
+            var self = this;
+            var fg = self._fromGeom;
+            var tg = self._toGeom;
+            if (self._areSame) {
                 return tg;
             }
             if (progress === 0) {
@@ -1977,7 +2040,9 @@ MIT License
             else if (progress === 1) {
                 return tg;
             }
-            var c = this._runInterpolators(progress);
+            var fgPos = fg.coordinates;
+            var tgPos = tg.coordinates;
+            var c = self._runInterps(progress);
             var g = { type: tg.type };
             switch (tg.type) {
                 case 'Point':
@@ -1987,7 +2052,7 @@ MIT License
                         //Grab sample points.
                         g = {
                             type: fg.type,
-                            coordinates: this._sampleMultiPoint(c, fg.coordinates.length)
+                            coordinates: self._sampleMultiPoint(c, fgPos.length)
                         };
                     }
                     else if (fg.type === 'Polygon' ||
@@ -2003,8 +2068,8 @@ MIT License
                     break;
                 case 'LineString':
                     //Remove extra points when transitioning from a polygon.
-                    if (fg.type === 'Polygon' && fg.coordinates.length > tg.coordinates.length) {
-                        var numRemove = Math.floor(c[0].length / (tg.coordinates.length - 1));
+                    if (fg.type === 'Polygon' && fgPos.length > tgPos.length) {
+                        var numRemove = Math.floor(c[0].length / (tgPos.length - 1));
                         for (var i = numRemove; i >= 0; i--) {
                             c[0].pop();
                         }
@@ -2015,7 +2080,7 @@ MIT License
                     //If morphing to a MultiPoint, keep the from shape for as long a possible.
                     if (fg.type === 'Point') {
                         //Grab sample points.                   
-                        g.coordinates = this._sampleMultiPoint(c, tg.coordinates.length);
+                        g.coordinates = self._sampleMultiPoint(c, tgPos.length);
                     }
                     else if (fg.type !== 'MultiPoint') {
                         g = {
@@ -2034,50 +2099,53 @@ MIT License
             }
             return g;
         };
-        SimpleGeometryInterpolator.prototype._initInterpolators = function () {
-            var fg = this._fromGeometry;
-            var tg = this._toGeometry;
-            if (!this._areSame && fg && fg.coordinates.length > 0 &&
+        SimpleGeometryInterpolator.prototype._initInterps = function () {
+            var self = this;
+            var fg = self._fromGeom;
+            var tg = self._toGeom;
+            if (!self._areSame && fg && fg.coordinates.length > 0 &&
                 tg && tg.coordinates.length > 0) {
+                var fgPos = fg.coordinates;
+                var tgPos = tg.coordinates;
                 var fromCoords = [];
                 var toCoords = [];
                 switch (fg.type) {
                     case 'Point':
-                        var fc = fg.coordinates;
+                        var fc = fgPos;
                         fromCoords = [[fc, fc, fc]];
                         break;
                     case 'LineString':
                     case 'MultiPoint':
-                        var fc2 = fg.coordinates;
+                        var fc2 = fgPos;
                         fromCoords = [fc2];
                         break;
                     case 'Polygon':
                     case 'MultiLineString':
-                        if (typeof fg.coordinates[0] === 'number') {
-                            fromCoords = [fg.coordinates];
+                        if (typeof fgPos[0] === 'number') {
+                            fromCoords = [fgPos];
                         }
                         else {
-                            fromCoords = fg.coordinates;
+                            fromCoords = fgPos;
                         }
                         break;
                 }
                 switch (tg.type) {
                     case 'Point':
-                        var tc = tg.coordinates;
+                        var tc = tgPos;
                         toCoords = [[tc, tc, tc]];
                         break;
                     case 'LineString':
                     case 'MultiPoint':
-                        var tc2 = tg.coordinates;
+                        var tc2 = tgPos;
                         toCoords = [tc2];
                         break;
                     case 'Polygon':
                     case 'MultiLineString':
-                        if (typeof tg.coordinates[0] === 'number') {
-                            toCoords = [tg.coordinates];
+                        if (typeof tgPos[0] === 'number') {
+                            toCoords = [tgPos];
                         }
                         else {
-                            toCoords = tg.coordinates;
+                            toCoords = tgPos;
                         }
                         break;
                 }
@@ -2090,15 +2158,15 @@ MIT License
                     }
                 }
                 for (i = 0; i < len; i++) {
-                    this._interpolators.push(new RingInterpolator(fromCoords[i], toCoords[i]));
+                    self._interps.push(new RingInterpolator(fromCoords[i], toCoords[i]));
                 }
             }
         };
-        SimpleGeometryInterpolator.prototype._runInterpolators = function (progress) {
+        SimpleGeometryInterpolator.prototype._runInterps = function (progress) {
             var c = [];
-            var int = this._interpolators;
-            for (var i = 0; i < int.length; i++) {
-                c.push(int[i].interpolate(progress));
+            var interps = this._interps;
+            for (var i = 0; i < interps.length; i++) {
+                c.push(interps[i].interpolate(progress));
             }
             return c;
         };
@@ -2115,46 +2183,51 @@ MIT License
 
     var GeometryInterpolator = /** @class */ (function () {
         function GeometryInterpolator(fromGeometry, toGeometry) {
-            this._interpolators = [];
-            this._fromGeometry = fromGeometry;
-            this._toGeometry = toGeometry;
-            this._initInterpolators();
+            this._interps = [];
+            var self = this;
+            self._fromGeom = fromGeometry;
+            self._toGeom = toGeometry;
+            self._initInterps();
         }
         GeometryInterpolator.prototype.interpolate = function (progress) {
+            var self = this;
+            var toGeom = self._toGeom;
+            var interps = self._interps;
             if (progress === 0) {
-                return this._fromGeometry;
+                return self._fromGeom;
             }
             else if (progress === 1) {
-                return this._toGeometry;
+                return toGeom;
             }
-            if (this._toGeometry.type === 'MultiPolygon') {
-                var c = [];
-                this._interpolators.forEach(function (interpolator) {
-                    c.push(interpolator.interpolate(progress).coordinates);
+            if (toGeom.type === 'MultiPolygon') {
+                var c_1 = [];
+                interps.forEach(function (interpolator) {
+                    c_1.push(interpolator.interpolate(progress).coordinates);
                 });
                 return {
                     type: 'MultiPolygon',
-                    coordinates: c
+                    coordinates: c_1
                 };
             }
-            else if (this._toGeometry.type === 'GeometryCollection') {
-                var geoms = [];
-                this._interpolators.forEach(function (interpolator) {
-                    geoms.push(interpolator.interpolate(progress));
+            else if (toGeom.type === 'GeometryCollection') {
+                var geoms_1 = [];
+                interps.forEach(function (interpolator) {
+                    geoms_1.push(interpolator.interpolate(progress));
                 });
                 //@ts-ignore.
                 return {
                     type: 'GeometryCollection',
-                    geometries: geoms
+                    geometries: geoms_1
                 };
             }
-            return this._interpolators[0].interpolate(progress);
+            return interps[0].interpolate(progress);
         };
-        GeometryInterpolator.prototype._initInterpolators = function () {
+        GeometryInterpolator.prototype._initInterps = function () {
+            var self = this;
             var fromGeoms = [];
             var toGeoms = [];
-            this.extractGeometries(this._fromGeometry, fromGeoms);
-            this.extractGeometries(this._toGeometry, toGeoms);
+            self._extractGeoms(self._fromGeom, fromGeoms);
+            self._extractGeoms(self._toGeom, toGeoms);
             //Fill gap of geometries transitioning from.
             if (fromGeoms.length < toGeoms.length) {
                 if (fromGeoms.length > 0) {
@@ -2184,10 +2257,10 @@ MIT License
             }
             //Crate interpolators
             for (var i = 0; i < toGeoms.length; i++) {
-                this._interpolators.push(new SimpleGeometryInterpolator(fromGeoms[i], toGeoms[i]));
+                self._interps.push(new SimpleGeometryInterpolator(fromGeoms[i], toGeoms[i]));
             }
         };
-        GeometryInterpolator.prototype.extractGeometries = function (geom, targetArray) {
+        GeometryInterpolator.prototype._extractGeoms = function (geom, targetArray) {
             var _this = this;
             switch (geom.type) {
                 case 'MultiPolygon':
@@ -2201,7 +2274,7 @@ MIT License
                 case 'GeometryCollection':
                     //@ts-ignore
                     geom.geometries.forEach(function (g) {
-                        _this.extractGeometries(g, targetArray);
+                        _this._extractGeoms(g, targetArray);
                     });
                     break;
                 default:
@@ -2220,45 +2293,49 @@ MIT License
         ***************************/
         function MorphShapeAnimation(shape, newGeometry, options) {
             var _this = _super.call(this) || this;
-            _this._shape = shape;
+            var self = _this;
+            var bbox = azmaps.data.BoundingBox;
+            self._shape = shape;
             var g = shape.toJson().geometry;
             //For circles, if the new geometry is not a point, then pass in a polygon of the circle.
             if (shape.isCircle() && newGeometry.type !== 'Point') {
                 g = new azmaps.data.Polygon(shape.getCircleCoordinates());
             }
-            _this._interpolator = new GeometryInterpolator(shape.toJson().geometry, newGeometry);
-            var lastCenter = azmaps.data.BoundingBox.getCenter(_this._shape.getBounds());
-            var newCenter = azmaps.data.BoundingBox.getCenter(azmaps.data.BoundingBox.fromData(newGeometry));
-            _this._heading = azmaps.math.getHeading(lastCenter, newCenter);
+            self._interp = new GeometryInterpolator(shape.toJson().geometry, newGeometry);
+            var lastCenter = bbox.getCenter(self._shape.getBounds());
+            var newCenter = bbox.getCenter(bbox.fromData(newGeometry));
+            self._heading = azmaps.math.getHeading(lastCenter, newCenter);
             var pixels = azmaps.math.mercatorPositionsToPixels([lastCenter, newCenter], 21);
-            _this._pixelHeading = Utils.getPixelHeading(pixels[0], pixels[1]);
+            self._pixelHeading = Utils.getPixelHeading(pixels[0], pixels[1]);
             if (options) {
-                _this.setOptions(options);
+                self.setOptions(options);
                 if (options.autoPlay) {
-                    _this.play();
+                    self.play();
                 }
             }
-            AnimationManager.instance.add(_this);
+            AnimationManager.instance.add(self);
             return _this;
         }
         /**************************
         * Public Methods
         ***************************/
         MorphShapeAnimation.prototype.onAnimationProgress = function (progress) {
-            var g = this._interpolator.interpolate(progress);
-            var newCenter = azmaps.data.BoundingBox.getCenter(azmaps.data.BoundingBox.fromData(g));
+            var self = this;
+            var bbox = azmaps.data.BoundingBox;
+            var g = self._interp.interpolate(progress);
+            var newCenter = bbox.getCenter(bbox.fromData(g));
             var heading = 0;
-            if (this._pathOptions.geodesic) {
-                heading = this._heading;
+            if (self._pathOptions.geodesic) {
+                heading = self._heading;
             }
             else {
-                heading = this._pixelHeading;
+                heading = self._pixelHeading;
             }
-            if (this._pathOptions.map) {
-                this._setMapCamera(newCenter, heading, true);
+            if (self._pathOptions.map) {
+                self._setMapCamera(newCenter, heading, true);
             }
-            var s = this._shape;
-            if (this._pathOptions.captureMetadata) {
+            var s = self._shape;
+            if (self._pathOptions.captureMetadata) {
                 s.addProperty('heading', heading);
             }
             //If shape is a circle and geometry is a Point, just set coordinates.
@@ -2293,32 +2370,30 @@ MIT License
                 args[_i - 3] = arguments[_i];
             }
             this._delay = 1;
-            this._numberOfIOntervals = Infinity;
+            this._numberOfInv = Infinity;
             this._currentInterval = 0;
-            this._id = AnimationManager.instance.add(this);
-            this._intervalCallback = intervalCallback;
-            this._arguments = args;
+            var self = this;
+            self._id = AnimationManager.instance.add(self);
+            self._intervalCb = intervalCallback;
+            self._arguments = args;
             if (delay >= 0) {
-                this._delay = delay;
+                self._delay = delay;
             }
             if (numberOfIOntervals > 0) {
-                this._numberOfIOntervals = numberOfIOntervals;
+                self._numberOfInv = numberOfIOntervals;
             }
         }
         /** Disposes the animation. */
         SimpleIntervalAnimation.prototype.dispose = function () {
-            AnimationManager.instance.remove(this);
-            this._id = undefined;
-            this._delay = undefined;
-            this._start = undefined;
-            this._intervalCallback = undefined;
-            this._numberOfIOntervals = undefined;
-            this._currentInterval = undefined;
-            this._onComplete = undefined;
+            var self = this;
+            AnimationManager.instance.remove(self);
+            Object.keys(self).forEach(function (k) {
+                self[k] = undefined;
+            });
         };
         /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
         SimpleIntervalAnimation.prototype.getDuration = function () {
-            return this._numberOfIOntervals * this._delay;
+            return this._numberOfInv * this._delay;
         };
         /** Checks to see if the animaiton is playing.  */
         SimpleIntervalAnimation.prototype.isPlaying = function () {
@@ -2339,23 +2414,25 @@ MIT License
         };
         /** Stops the animation and jumps to the last interval. */
         SimpleIntervalAnimation.prototype.stop = function () {
-            this._start = null;
-            this._currentInterval = this._numberOfIOntervals;
+            var self = this;
+            self._start = null;
+            self._currentInterval = self._numberOfInv;
         };
         SimpleIntervalAnimation.prototype._onAnimationProgress = function (timestamp) {
-            if (this._start) {
-                var intervalIdx = Math.round((timestamp - this._start) / this._delay);
-                if (intervalIdx !== this._currentInterval) {
-                    this._currentInterval = intervalIdx;
-                    if (this._intervalCallback) {
+            var self = this;
+            if (self._start) {
+                var intervalIdx = Math.round((timestamp - self._start) / self._delay);
+                if (intervalIdx !== self._currentInterval) {
+                    self._currentInterval = intervalIdx;
+                    if (self._intervalCb) {
                         //Call setTimeout without any time, so that it calls the callback function asynchronously.
-                        setTimeout(this._intervalCallback, 0, this._arguments);
+                        setTimeout(self._intervalCb, 0, self._arguments);
                     }
-                    if (intervalIdx >= this._numberOfIOntervals) {
-                        this._start = null;
-                        if (this._onComplete) {
-                            this._onComplete();
-                            this.dispose();
+                    if (intervalIdx >= self._numberOfInv) {
+                        self._start = null;
+                        if (self._onComplete) {
+                            self._onComplete();
+                            self.dispose();
                         }
                     }
                 }
@@ -2372,14 +2449,15 @@ MIT License
         ***************************/
         function RoutePathAnimation(route, shape, options) {
             var _this = _super.call(this) || this;
-            _this._shape = shape;
-            _this._route = route;
-            _this.setOptions(Object.assign({
+            var self = _this;
+            self._shape = shape;
+            self._route = route;
+            self.setOptions(Object.assign({
                 rotate: true,
                 rotationOffset: 0
             }, options || {}));
             if (options && options.autoPlay) {
-                _this.play();
+                self.play();
             }
             return _this;
         }
@@ -2388,63 +2466,67 @@ MIT License
         ***************************/
         /** Disposes the animation. */
         RoutePathAnimation.prototype.dispose = function () {
-            this._route = null;
-            this._headingIntervals = null;
-            this._positions = null;
-            this._timestamps = null;
-            this._timeIntervals = null;
-            this._totalTime = null;
-            this._shape = null;
+            var self = this;
+            self._route = null;
+            self._headingInv = null;
+            self._positions = null;
+            self._timestamps = null;
+            self._timeInv = null;
+            self._totalTime = null;
+            self._shape = null;
             _super.prototype.dispose.call(this);
         };
         /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
         RoutePathAnimation.prototype.getDuration = function () {
-            if (typeof this._totalTime !== 'undefined') {
-                return this._totalTime / this._pathOptions.speedMultiplier;
+            var self = this;
+            if (typeof self._totalTime !== 'undefined') {
+                return self._totalTime / self._pathOptions.speedMultiplier;
             }
             return _super.prototype.getDuration.call(this);
         };
         /** Gets the animation options. */
         RoutePathAnimation.prototype.getOptions = function () {
             return Object.assign({}, _super.prototype.getOptions.call(this), {
-                valueInterpolations: this._valueInterpolations
+                valueInterpolations: this._valueInterps
             });
         };
         /** Sets the options of the animation. */
         RoutePathAnimation.prototype.setOptions = function (options) {
             if (options) {
+                var self_1 = this;
                 if (options.valueInterpolations && Array.isArray(options.valueInterpolations)) {
-                    this._positions = null;
-                    this._valueInterpolations = options.valueInterpolations;
+                    self_1._positions = null;
+                    self_1._valueInterps = options.valueInterpolations;
                 }
                 _super.prototype.setOptions.call(this, options);
-                var isPlaying = this.isPlaying();
+                var isPlaying = self_1.isPlaying();
                 if (isPlaying) {
-                    this.pause();
+                    self_1.pause();
                 }
-                if (!this._positions) {
-                    this._processPath();
-                    if (this._pathOptions.captureMetadata) {
-                        if (this._headingIntervals.length > 0) {
-                            Utils.setMetadata(this._shape, {
-                                heading: this._headingIntervals[0],
-                                speed: this._speedIntervals[0],
-                                timestamp: this._timestamps[0]
+                if (!self_1._positions) {
+                    self_1._processPath();
+                    if (self_1._pathOptions.captureMetadata) {
+                        if (self_1._headingInv.length > 0) {
+                            Utils.setMetadata(self_1._shape, {
+                                heading: self_1._headingInv[0],
+                                speed: self_1._speedInv[0],
+                                timestamp: self_1._timestamps[0]
                             });
                         }
                     }
                 }
                 if (isPlaying) {
-                    this.play();
+                    self_1.play();
                 }
             }
         };
         /** Gets the time span of the animation. */
         RoutePathAnimation.prototype.getTimeSpan = function () {
-            if (this._timestamps.length > 0) {
+            var timestamps = this._timestamps;
+            if (timestamps.length > 0) {
                 return {
-                    begin: this._timestamps[0],
-                    end: this._timestamps[this._timestamps.length - 1]
+                    begin: timestamps[0],
+                    end: timestamps[timestamps.length - 1]
                 };
             }
             return null;
@@ -2458,18 +2540,19 @@ MIT License
          * @param progress The progress of the animation where 0 is start and 1 is the end.
          */
         RoutePathAnimation.prototype.onAnimationProgress = function (progress) {
-            if (this._positions && this._positions.length > 1) {
+            var self = this;
+            var sourcePos = self._positions;
+            if (sourcePos && sourcePos.length > 1) {
                 var state = {};
                 var idx_1 = 0;
                 var props = void 0;
                 var offset_1 = 0;
-                var shape = this._shape;
-                var pathOptions = this._pathOptions;
-                var sourcePos = this._positions;
-                var headings = this._headingIntervals;
-                var speeds = this._speedIntervals;
-                var timestamps = this._timestamps;
-                var route_1 = this._route;
+                var shape = self._shape;
+                var pathOptions = self._pathOptions;
+                var headings = self._headingInv;
+                var speeds = self._speedInv;
+                var timestamps = self._timestamps;
+                var route_1 = self._route;
                 if (progress === 1) {
                     //Animation is done.
                     idx_1 = headings.length - 1;
@@ -2480,7 +2563,7 @@ MIT License
                         timestamp: timestamps[idx_1 + 1]
                     };
                     if (pathOptions.map) {
-                        this._setMapCamera(state.position, state.heading, false);
+                        self._setMapCamera(state.position, state.heading, false);
                     }
                     Utils.setCoordinates(shape, state.position, sourcePos);
                     props = route_1[idx_1].properties;
@@ -2495,38 +2578,38 @@ MIT License
                         timestamp: timestamps[0]
                     };
                     if (pathOptions.map) {
-                        this._setMapCamera(state.position, state.heading, false);
+                        self._setMapCamera(state.position, state.heading, false);
                     }
                     Utils.setCoordinates(shape, state.position, [state.position, state.position]);
                     props = route_1[0].properties;
                 }
                 else {
-                    var dt = this._totalTime * progress;
-                    var positions = null;
+                    var dt = self._totalTime * progress;
+                    var pos = null;
                     //Calculate the coordinate part way between the origin and destination.
-                    if (dt > this._totalTime) {
+                    if (dt > self._totalTime) {
                         idx_1 = headings.length - 1;
                         state = {
                             heading: headings[idx_1],
                             speed: speeds[idx_1],
                             timestamp: timestamps[idx_1 + 1]
                         };
-                        positions = sourcePos.slice(0);
+                        pos = sourcePos.slice(0);
                         props = route_1[idx_1 + 1].properties;
                         offset_1 = 1;
                     }
                     else if (dt < 0) {
                         state.heading = headings[0];
-                        positions = sourcePos.slice(0, 1);
+                        pos = sourcePos.slice(0, 1);
                     }
                     else {
                         var ellapsed = 0;
-                        var ti = this._timeIntervals;
+                        var ti = self._timeInv;
                         for (idx_1 = 0; idx_1 < headings.length; idx_1++) {
                             if (ellapsed + ti[idx_1] >= dt) {
                                 state.heading = headings[idx_1];
                                 state.speed = speeds[idx_1];
-                                positions = sourcePos.slice(0, idx_1 + 1);
+                                pos = sourcePos.slice(0, idx_1 + 1);
                                 //Time in ms remaining that forms sub-path.
                                 var dt2 = dt - ellapsed;
                                 //Distance travelled based on average speed. Note that dt2 is in ms and speed is in m/s, thus the conversion to seconds.
@@ -2534,7 +2617,7 @@ MIT License
                                 //Get the offset distance from the last known point.
                                 offset_1 = dx / azmaps.math.getDistanceTo(sourcePos[idx_1], sourcePos[idx_1 + 1]);
                                 state.timestamp = timestamps[idx_1] + dt2;
-                                positions.push(azmaps.math.getDestination(sourcePos[idx_1], state.heading, dx));
+                                pos.push(azmaps.math.getDestination(sourcePos[idx_1], state.heading, dx));
                                 break;
                             }
                             else {
@@ -2542,25 +2625,25 @@ MIT License
                             }
                         }
                     }
-                    if (positions && positions.length > 0) {
-                        state.position = positions[positions.length - 1];
+                    if (pos && pos.length > 0) {
+                        state.position = pos[pos.length - 1];
                         if (pathOptions.map) {
                             //Animate to the next view.
-                            this._setMapCamera(state.position, state.heading, positions.length > 2);
+                            self._setMapCamera(state.position, state.heading, pos.length > 2);
                         }
-                        Utils.setCoordinates(shape, state.position, positions);
+                        Utils.setCoordinates(shape, state.position, pos);
                     }
                 }
                 state = Object.assign(props || {}, state);
                 if (pathOptions.captureMetadata) {
-                    var obj = {};
-                    var vi = this._valueInterpolations;
+                    var obj_1 = {};
+                    var vi = self._valueInterps;
                     if (vi && Array.isArray(vi)) {
                         vi.forEach(function (vi) {
-                            Utils.interpolateValue(route_1[idx_1], route_1[idx_1 + 1], offset_1, vi, obj);
+                            Utils.interpolateValue(route_1[idx_1], route_1[idx_1 + 1], offset_1, vi, obj_1);
                         });
                     }
-                    Utils.setMetadata(shape, Object.assign(state, obj));
+                    Utils.setMetadata(shape, Object.assign(state, obj_1));
                 }
                 return state;
             }
@@ -2570,15 +2653,17 @@ MIT License
         * Private Methods
         ***************************/
         RoutePathAnimation.prototype._processPath = function () {
-            if (this._route) {
-                this._totalTime = 0;
-                this._positions = null;
+            var self = this;
+            var r = self._route;
+            if (r) {
+                self._totalTime = 0;
+                self._positions = null;
                 var positions = [];
                 var headingIntervals = [];
                 var speedIntervals = [];
                 var timeIntervals = [];
                 var timestamps = [];
-                var r = this._route;
+                var mapMath = azmaps.math;
                 var f = r[0];
                 if (f.type === 'Feature' && f.geometry.type === 'Point' && typeof f.properties._timestamp === 'number') {
                     timestamps.push(f.properties._timestamp);
@@ -2587,14 +2672,14 @@ MIT License
                         f = r[i];
                         if (f.type === 'Feature' && f.geometry.type === 'Point' && typeof f.properties._timestamp === 'number') {
                             positions.push(f.geometry.coordinates);
-                            var d = azmaps.math.getDistanceTo(positions[i - 1], positions[i]);
+                            var d = mapMath.getDistanceTo(positions[i - 1], positions[i]);
                             timestamps.push(f.properties._timestamp);
                             var dt = timestamps[i] - timestamps[i - 1];
                             timeIntervals.push(dt);
-                            this._totalTime += dt;
+                            self._totalTime += dt;
                             //Get speed in meters per second. Convert time from ms to seconds.
                             speedIntervals.push(d / (dt * 0.001));
-                            var h = azmaps.math.getHeading(positions[i - 1], positions[i]);
+                            var h = mapMath.getHeading(positions[i - 1], positions[i]);
                             headingIntervals.push(h);
                         }
                     }
@@ -2603,15 +2688,15 @@ MIT License
                     throw 'Feature is not a point or is missing a _timestamp value.';
                 }
                 if (r.length !== positions.length) {
-                    this.dispose();
+                    self.dispose();
                     throw 'Unable to process all points in route.';
                 }
-                this._headingIntervals = headingIntervals;
-                this._speedIntervals = speedIntervals;
-                this._timeIntervals = timeIntervals;
-                this._timestamps = timestamps;
-                this._positions = positions;
-                _super.prototype.setOptions.call(this, { duration: this._totalTime });
+                self._headingInv = headingIntervals;
+                self._speedInv = speedIntervals;
+                self._timeInv = timeIntervals;
+                self._timestamps = timestamps;
+                self._positions = positions;
+                _super.prototype.setOptions.call(this, { duration: self._totalTime });
             }
         };
         return RoutePathAnimation;
@@ -2772,7 +2857,7 @@ MIT License
         var route;
         if (Array.isArray(shapes)) {
             route = [];
-            var mode;
+            var mode = void 0;
             for (var i = 0, len = shapes.length; i < len; i++) {
                 var f = void 0;
                 if (shapes[i] instanceof azmaps.Shape) {
@@ -2833,8 +2918,7 @@ MIT License
      * @param callback A callback function that is called after the delay period.
      */
     function delay(timeout, callback) {
-        var animation = new SimpleIntervalAnimation(callback, timeout, 1);
-        return animation;
+        return new SimpleIntervalAnimation(callback, timeout, 1);
     }
     /**
      * Creates a playable animation that triggers a callback function on constant interval.
@@ -2843,8 +2927,7 @@ MIT License
      * @param numberOfIntervals The number of intervals to trigger in the animation. DEfault: Infinity
      */
     function interval(period, callback, numberOfIntervals) {
-        var animation = new SimpleIntervalAnimation(callback, period, Math.max(numberOfIntervals || Infinity, 1));
-        return animation;
+        return new SimpleIntervalAnimation(callback, period, Math.max(numberOfIntervals || Infinity, 1));
     }
     /**
      * A version of the setInterval function based on requestAnimationFrame.
@@ -2969,12 +3052,13 @@ MIT License
                 autoPlay: false
             };
             _this._onComplete = function () { };
-            _this._animations = animations;
+            var self = _this;
+            self._animations = animations;
             if (options) {
-                _this.setOptions(options);
+                self.setOptions(options);
             }
             else {
-                _this._calculateDuration();
+                self._calculateDuration();
             }
             return _this;
         }
@@ -2983,12 +3067,13 @@ MIT License
         ***************************/
         /** Disposes the animation. */
         GroupAnimation.prototype.dispose = function () {
-            this.stop();
-            this._options = null;
-            this._animations = null;
-            this._onComplete = null;
-            this._isPlaying = null;
-            this._cancelAnimations = null;
+            var self = this;
+            self.stop();
+            self._options = null;
+            self._animations = null;
+            self._onComplete = null;
+            self._isPlaying = null;
+            self._cancelAnimations = null;
         };
         /** Gets the duration of the animation. */
         GroupAnimation.prototype.getDuration = function () {
@@ -3006,16 +3091,17 @@ MIT License
          * Plays the group of animations.
          */
         GroupAnimation.prototype.play = function () {
-            this._cancelAnimations = false;
-            switch (this._options.playType) {
+            var self = this;
+            self._cancelAnimations = false;
+            switch (self._options.playType) {
                 case 'together':
-                    this._playTogether();
+                    self._playTogether();
                     break;
                 case 'sequential':
-                    this._playSeq();
+                    self._playSeq();
                     break;
                 case 'interval':
-                    this._playInterval();
+                    self._playInterval();
                     break;
             }
         };
@@ -3023,29 +3109,31 @@ MIT License
          * Stops all animations and jumps back to the beginning of each animation.
          */
         GroupAnimation.prototype.reset = function () {
+            var self = this;
             //Prevent any queued animations from starting.
-            this._cancelAnimations = true;
-            var a = this._animations;
+            self._cancelAnimations = true;
+            var animations = self._animations;
             //Stop all animations that are playing. 
-            if (a && a.length > 0) {
-                for (var i = 0; i < a.length; i++) {
-                    a[i].reset();
+            if (animations && animations.length > 0) {
+                for (var i = 0; i < animations.length; i++) {
+                    animations[i].reset();
                 }
             }
-            this._isPlaying = false;
+            self._isPlaying = false;
         };
         /** Stops all animations and jumps to the final state of each animation. */
         GroupAnimation.prototype.stop = function () {
+            var self = this;
             //Prevent any queued animations from starting.
-            this._cancelAnimations = true;
-            var a = this._animations;
+            self._cancelAnimations = true;
+            var animations = self._animations;
             //Stop all animations that are playing. 
-            if (a && a.length > 0) {
-                for (var i = 0; i < a.length; i++) {
-                    a[i].stop();
+            if (animations && animations.length > 0) {
+                for (var i = 0; i < animations.length; i++) {
+                    animations[i].stop();
                 }
             }
-            this._isPlaying = false;
+            self._isPlaying = false;
         };
         /**
          * Sets the options of the animation.
@@ -3053,25 +3141,27 @@ MIT License
          */
         GroupAnimation.prototype.setOptions = function (options) {
             if (options) {
-                var isPlaying = this._isPlaying;
+                var self_1 = this;
+                var opt = self_1._options;
+                var isPlaying = self_1._isPlaying;
                 if (isPlaying) {
-                    this.stop();
+                    self_1.stop();
                 }
                 if (options.playType && ['together', 'sequential', 'interval'].indexOf(options.playType) !== -1) {
-                    this._options.playType = options.playType;
+                    opt.playType = options.playType;
                 }
                 if (typeof options.autoPlay === 'boolean') {
-                    this._options.autoPlay = options.autoPlay;
+                    opt.autoPlay = options.autoPlay;
                     if (!isPlaying && options.autoPlay) {
                         isPlaying = true;
                     }
                 }
                 if (typeof options.interval === 'number') {
-                    this._options.interval = (options.interval > 0) ? Math.abs(options.interval) : 100;
+                    opt.interval = (options.interval > 0) ? Math.abs(options.interval) : 100;
                 }
-                this._calculateDuration();
+                self_1._calculateDuration();
                 if (isPlaying) {
-                    this.play();
+                    self_1.play();
                 }
             }
         };
@@ -3082,19 +3172,19 @@ MIT License
          * Plays an array of animations together at the same time.
          */
         GroupAnimation.prototype._playTogether = function () {
-            var _this = this;
-            var a = this._animations;
-            if (a && a.length > 0) {
-                this._isPlaying = true;
-                for (var i = 0; i < a.length; i++) {
-                    if (i === a.length - 1) {
-                        a[i]._onComplete = function () {
-                            _this._isPlaying = false;
+            var self = this;
+            var animations = this._animations;
+            if (animations && animations.length > 0) {
+                self._isPlaying = true;
+                for (var i = 0; i < animations.length; i++) {
+                    if (i === animations.length - 1) {
+                        animations[i]._onComplete = function () {
+                            self._isPlaying = false;
                             //Animations complete.
-                            _this._invokeEvent('oncomplete', null);
+                            self._invokeEvent('oncomplete', null);
                         };
                     }
-                    a[i].play();
+                    animations[i].play();
                 }
             }
         };
@@ -3102,26 +3192,26 @@ MIT License
          * Plays an array of animations sequentially. Looping of any animation will be disabled.
          */
         GroupAnimation.prototype._playSeq = function () {
-            var _this = this;
-            var a = this._animations;
-            if (a && a.length > 0) {
-                this._isPlaying = true;
+            var self = this;
+            var animations = self._animations;
+            if (animations && animations.length > 0) {
+                self._isPlaying = true;
                 var idx_1 = 0;
                 var callback_1 = function () {
-                    if (_this._isPlaying) {
+                    if (self._isPlaying) {
                         if (idx_1 > 0) {
                             //Only use the callback once.
-                            a[idx_1 - 1]._onComplete = null;
+                            animations[idx_1 - 1]._onComplete = null;
                         }
-                        if (!_this._cancelAnimations && idx_1 < a.length) {
-                            a[idx_1]._onComplete = callback_1;
-                            a[idx_1].play();
+                        if (!self._cancelAnimations && idx_1 < animations.length) {
+                            animations[idx_1]._onComplete = callback_1;
+                            animations[idx_1].play();
                             idx_1++;
                         }
                         else {
-                            _this._isPlaying = false;
+                            self._isPlaying = false;
                             //Animations complete.
-                            _this._invokeEvent('oncomplete', null);
+                            self._invokeEvent('oncomplete', null);
                         }
                     }
                 };
@@ -3132,32 +3222,33 @@ MIT License
          * Plays an array of animations one by one based on an interval.
          */
         GroupAnimation.prototype._playInterval = function () {
-            if (this._animations && this._animations.length > 0) {
-                this._isPlaying = true;
-                var self_1 = this;
+            var self = this;
+            var animations = self._animations;
+            if (animations && animations.length > 0) {
+                self._isPlaying = true;
                 var idx_2 = 0;
                 var p_1 = function () {
-                    if (self_1._isPlaying) {
-                        if (!self_1._cancelAnimations && idx_2 < self_1._animations.length) {
-                            if (idx_2 === self_1._animations.length - 1) {
-                                self_1._animations[idx_2]._onComplete = function () {
-                                    if (self_1._isPlaying) {
-                                        self_1._isPlaying = false;
+                    if (self._isPlaying) {
+                        if (!self._cancelAnimations && idx_2 < animations.length) {
+                            if (idx_2 === animations.length - 1) {
+                                animations[idx_2]._onComplete = function () {
+                                    if (self._isPlaying) {
+                                        self._isPlaying = false;
                                         //Animations complete.
-                                        self_1._invokeEvent('oncomplete', null);
+                                        self._invokeEvent('oncomplete', null);
                                     }
                                 };
                             }
-                            self_1._animations[idx_2].play();
+                            animations[idx_2].play();
                             idx_2++;
                             setTimeout$1(function () {
                                 p_1();
-                            }, self_1._options.interval);
+                            }, self._options.interval);
                         }
-                        else if (self_1._cancelAnimations && self_1._isPlaying) {
-                            self_1._isPlaying = false;
+                        else if (self._cancelAnimations && self._isPlaying) {
+                            self._isPlaying = false;
                             //Animations complete.
-                            self_1._invokeEvent('oncomplete', null);
+                            self._invokeEvent('oncomplete', null);
                         }
                     }
                 };
@@ -3166,14 +3257,15 @@ MIT License
         };
         /** Calculates the total duration of the animation. */
         GroupAnimation.prototype._calculateDuration = function () {
+            var self = this;
             var maxPostInterval = 0;
             var intervalRemaining = 0;
             var max = 0;
             var sum = 0;
-            var options = this._options;
-            var a = this._animations;
-            var totalInterval = options.interval * a.length;
-            a.forEach(function (a, i, arr) {
+            var options = self._options;
+            var animations = self._animations;
+            var totalInterval = options.interval * animations.length;
+            animations.forEach(function (a, i, arr) {
                 var d = a.getDuration();
                 intervalRemaining = totalInterval - i * options.interval;
                 if (intervalRemaining < d) {

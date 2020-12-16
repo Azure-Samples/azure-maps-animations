@@ -39,16 +39,16 @@ export class RoutePathAnimation extends MapPathPlayableAnimation {
     private _timestamps: number[];
 
     /** Heading between each point. */
-    private _headingIntervals: number[];    
+    private _headingInv: number[];    
     
     /** Average speed between positions. */
-    private _speedIntervals: number[];
+    private _speedInv: number[];
 
     /** Interval time between positions. */
-    private _timeIntervals: number[];
+    private _timeInv: number[];
 
     /** Interpolations to perform on custom data. */
-    private _valueInterpolations: PointPairValueInterpolation[];
+    private _valueInterps: PointPairValueInterpolation[];
 
     /**************************
     * Constructor
@@ -57,16 +57,17 @@ export class RoutePathAnimation extends MapPathPlayableAnimation {
     constructor(route: azmaps.data.Feature<azmaps.data.Point, any>[], shape?: azmaps.Shape | azmaps.HtmlMarker, options?: RoutePathAnimationOptions) {
         super();
 
-        this._shape = shape;
-        this._route = route;
+        const self = this;
+        self._shape = shape;
+        self._route = route;
 
-        this.setOptions(Object.assign({
+        self.setOptions(Object.assign({
             rotate: true,
             rotationOffset: 0
         },  options || {}));
 
         if (options && options.autoPlay) {
-            this.play();
+            self.play();
         } 
     }
 
@@ -76,21 +77,25 @@ export class RoutePathAnimation extends MapPathPlayableAnimation {
 
     /** Disposes the animation. */
     public dispose(): void {
-        this._route = null;
-        this._headingIntervals = null;
-        this._positions = null;
-        this._timestamps = null;
-        this._timeIntervals = null;
-        this._totalTime = null;
-        this._shape = null;
+        const self = this;
+
+        self._route = null;
+        self._headingInv = null;
+        self._positions = null;
+        self._timestamps = null;
+        self._timeInv = null;
+        self._totalTime = null;
+        self._shape = null;
 
         super.dispose();
     }
 
     /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
     public getDuration(): number {
-        if(typeof this._totalTime !== 'undefined'){
-            return this._totalTime / this._pathOptions.speedMultiplier;
+        const self = this;
+
+        if(typeof self._totalTime !== 'undefined'){
+            return self._totalTime / self._pathOptions.speedMultiplier;
         }
 
         return super.getDuration();
@@ -99,52 +104,55 @@ export class RoutePathAnimation extends MapPathPlayableAnimation {
     /** Gets the animation options. */
     public getOptions(): RoutePathAnimationOptions {
         return Object.assign({}, <RoutePathAnimation>super.getOptions(), { 
-            valueInterpolations: this._valueInterpolations
+            valueInterpolations: this._valueInterps
          });
     }
 
     /** Sets the options of the animation. */
     public setOptions(options: RoutePathAnimationOptions): void {
         if(options){
+            const self = this;
+
             if(options.valueInterpolations && Array.isArray(options.valueInterpolations)){
-                this._positions = null;
-                this._valueInterpolations = options.valueInterpolations;
+                self._positions = null;
+                self._valueInterps = options.valueInterpolations;
             }
 
             super.setOptions(options);
 
-            let isPlaying = this.isPlaying();
+            let isPlaying = self.isPlaying();
 
             if(isPlaying){
-                this.pause();
+                self.pause();
             }
 
-            if(!this._positions){
-                this._processPath();
+            if(!self._positions){
+                self._processPath();
 
-                if (this._pathOptions.captureMetadata) {
-                    if(this._headingIntervals.length > 0){
-                        Utils.setMetadata(this._shape, {
-                            heading: this._headingIntervals[0],
-                            speed: this._speedIntervals[0], 
-                            timestamp:this._timestamps[0]
+                if (self._pathOptions.captureMetadata) {
+                    if(self._headingInv.length > 0){
+                        Utils.setMetadata(self._shape, {
+                            heading: self._headingInv[0],
+                            speed: self._speedInv[0], 
+                            timestamp:self._timestamps[0]
                         });
                     }
                 }
             }
 
             if(isPlaying){
-                this.play();
+                self.play();
             }
         }
     }
 
     /** Gets the time span of the animation. */
     public getTimeSpan(): TimeSpan {
-        if(this._timestamps.length > 0){
+        const timestamps = this._timestamps;
+        if(timestamps.length > 0){
             return {
-                begin: this._timestamps[0],
-                end: this._timestamps[this._timestamps.length - 1]
+                begin: timestamps[0],
+                end: timestamps[timestamps.length - 1]
             };
         }
 
@@ -161,19 +169,21 @@ export class RoutePathAnimation extends MapPathPlayableAnimation {
      * @param progress The progress of the animation where 0 is start and 1 is the end.
      */
     public onAnimationProgress(progress: number): RoutePathAnimationEvent {
-        if(this._positions && this._positions.length > 1){
+        const self = this;
+        const sourcePos = self._positions;
+
+        if(sourcePos && sourcePos.length > 1){
             let state: RoutePathAnimationEvent = {};
             let idx = 0;
             let props: any;
             let offset = 0;
-            let shape = this._shape;
 
-            const pathOptions = this._pathOptions;
-            const sourcePos = this._positions;
-            const headings = this._headingIntervals;
-            const speeds = this._speedIntervals;
-            const timestamps= this._timestamps;
-            const route = this._route;
+            const shape = self._shape;
+            const pathOptions = self._pathOptions;
+            const headings = self._headingInv;
+            const speeds = self._speedInv;
+            const timestamps= self._timestamps;
+            const route = self._route;
 
             if (progress === 1) {
                 //Animation is done.
@@ -186,7 +196,7 @@ export class RoutePathAnimation extends MapPathPlayableAnimation {
                 };
                
                 if (pathOptions.map) {
-                    this._setMapCamera(state.position, state.heading, false);
+                    self._setMapCamera(state.position, state.heading, false);
                 } 
 
                 Utils.setCoordinates(shape, state.position, sourcePos);
@@ -203,52 +213,52 @@ export class RoutePathAnimation extends MapPathPlayableAnimation {
                 };
 
                 if (pathOptions.map) {
-                    this._setMapCamera(state.position, state.heading, false);
+                    self._setMapCamera(state.position, state.heading, false);
                 } 
 
                 Utils.setCoordinates(shape, state.position, [state.position, state.position]);
 
                 props = route[0].properties;
             } else {
-                var dt = this._totalTime * progress;
-                var positions: azmaps.data.Position[] = null;
+                let dt = self._totalTime * progress;
+                let pos: azmaps.data.Position[] = null;
 
                 //Calculate the coordinate part way between the origin and destination.
-                if (dt > this._totalTime) {
+                if (dt > self._totalTime) {
                     idx = headings.length - 1;
                     state = {
                         heading: headings[idx],
                         speed: speeds[idx],
                         timestamp: timestamps[idx + 1]
                     };
-                    positions = sourcePos.slice(0);
+                    pos = sourcePos.slice(0);
                     props = route[idx + 1].properties;
                     offset = 1;
                 } else if (dt < 0) {
                     state.heading = headings[0];
-                    positions = sourcePos.slice(0, 1);
+                    pos = sourcePos.slice(0, 1);
                 } else {
-                    var ellapsed = 0;
-                    let ti = this._timeIntervals;
+                    let ellapsed = 0;
+                    let ti = self._timeInv;
 
                     for (idx = 0; idx <headings.length; idx++) {
                         if (ellapsed + ti[idx] >= dt) {
                             state.heading = headings[idx];
                             state.speed = speeds[idx];
-                            positions = sourcePos.slice(0, idx + 1);
+                            pos = sourcePos.slice(0, idx + 1);
 
                             //Time in ms remaining that forms sub-path.
-                            var dt2 = dt - ellapsed;
+                            const dt2 = dt - ellapsed;
 
                             //Distance travelled based on average speed. Note that dt2 is in ms and speed is in m/s, thus the conversion to seconds.
-                            var dx = speeds[idx] * dt2 * 0.001;
+                            const dx = speeds[idx] * dt2 * 0.001;
 
                             //Get the offset distance from the last known point.
                             offset = dx / azmaps.math.getDistanceTo(sourcePos[idx], sourcePos[idx + 1]);
 
                             state.timestamp = timestamps[idx] + dt2;
 
-                            positions.push(azmaps.math.getDestination(sourcePos[idx], state.heading, dx));
+                            pos.push(azmaps.math.getDestination(sourcePos[idx], state.heading, dx));
                             break;
                         } else {
                             ellapsed += ti[idx];
@@ -256,23 +266,23 @@ export class RoutePathAnimation extends MapPathPlayableAnimation {
                     }
                 }
 
-                if (positions && positions.length > 0) {
-                    state.position = positions[positions.length - 1];
+                if (pos && pos.length > 0) {
+                    state.position = pos[pos.length - 1];
 
                     if (pathOptions.map) {
                         //Animate to the next view.
-                        this._setMapCamera(state.position, state.heading, positions.length > 2);
+                        self._setMapCamera(state.position, state.heading, pos.length > 2);
                     } 
 
-                    Utils.setCoordinates(shape, state.position, positions);
+                    Utils.setCoordinates(shape, state.position, pos);
                 }
             }
 
             state = Object.assign(props || {}, state);
 
             if (pathOptions.captureMetadata){
-                var obj = {};
-                let vi = this._valueInterpolations;
+                const obj = {};
+                const vi = self._valueInterps;
 
                 if(vi && Array.isArray(vi)){
                     vi.forEach(vi => {
@@ -294,43 +304,45 @@ export class RoutePathAnimation extends MapPathPlayableAnimation {
     ***************************/
 
     private _processPath(): void {
-        if(this._route){
+        const self = this;
+        const r = self._route;
 
-            this._totalTime = 0;
-            this._positions = null;
+        if(r){
 
-            let positions = [];
-            let headingIntervals = [];
-            let speedIntervals = [];
-            let timeIntervals = [];
-            let timestamps = [];
+            self._totalTime = 0;
+            self._positions = null;
 
+            const positions = [];
+            const headingIntervals = [];
+            const speedIntervals = [];
+            const timeIntervals = [];
+            const timestamps = [];
+            const mapMath = azmaps.math;
 
-            let r = this._route;
             let f = r[0];
 
             if (f.type === 'Feature' && f.geometry.type === 'Point' && typeof f.properties._timestamp === 'number') {
                 timestamps.push(f.properties._timestamp);
                 positions.push(f.geometry.coordinates);
 
-                for (var i = 1, len = r.length; i < len; i++) {
+                for (let i = 1, len = r.length; i < len; i++) {
                     f = r[i];
 
                     if (f.type === 'Feature' && f.geometry.type === 'Point' && typeof f.properties._timestamp === 'number') {
                         positions.push(f.geometry.coordinates);
 
-                        var d = azmaps.math.getDistanceTo(positions[i - 1], positions[i]);
+                        const d = mapMath.getDistanceTo(positions[i - 1], positions[i]);
 
                         timestamps.push(f.properties._timestamp);
 
-                        var dt = timestamps[i] - timestamps[i - 1];
+                        const dt = timestamps[i] - timestamps[i - 1];
                         timeIntervals.push(dt);
-                        this._totalTime += dt;
+                        self._totalTime += dt;
 
                         //Get speed in meters per second. Convert time from ms to seconds.
                         speedIntervals.push(d/(dt * 0.001));
 
-                        var h = azmaps.math.getHeading(positions[i - 1], positions[i]);
+                        const h = mapMath.getHeading(positions[i - 1], positions[i]);
                         headingIntervals.push(h);
                     }
                 }
@@ -339,17 +351,17 @@ export class RoutePathAnimation extends MapPathPlayableAnimation {
             }
 
             if(r.length !== positions.length){
-                this.dispose();
+                self.dispose();
                 throw 'Unable to process all points in route.';
             }
             
-            this._headingIntervals = headingIntervals;
-            this._speedIntervals = speedIntervals;
-            this._timeIntervals = timeIntervals;
-            this._timestamps = timestamps;
-            this._positions = positions;
+            self._headingInv = headingIntervals;
+            self._speedInv = speedIntervals;
+            self._timeInv = timeIntervals;
+            self._timestamps = timestamps;
+            self._positions = positions;
 
-            super.setOptions({ duration: this._totalTime });
+            super.setOptions({ duration: self._totalTime });
         }
     }
 }

@@ -2,28 +2,33 @@ import * as azmaps from "azure-maps-control";
 import { SimpleGeometryInterpolator } from './SimpleGeometryInterpolator';
 
 export class GeometryInterpolator  {
-    private _interpolators: SimpleGeometryInterpolator[] = [];
-    private _fromGeometry: azmaps.data.Geometry;
-    private _toGeometry: azmaps.data.Geometry;
+    private _interps: SimpleGeometryInterpolator[] = [];
+    private _fromGeom: azmaps.data.Geometry;
+    private _toGeom: azmaps.data.Geometry;
 
     constructor(fromGeometry: azmaps.data.Geometry, toGeometry: azmaps.data.Geometry) {
-        this._fromGeometry = fromGeometry;
-        this._toGeometry = toGeometry;
+        const self = this;
+        self._fromGeom = fromGeometry;
+        self._toGeom = toGeometry;
 
-        this._initInterpolators();
+        self._initInterps();
     }
 
     public interpolate(progress: number): azmaps.data.Geometry {
+        const self = this;
+        const toGeom = self._toGeom;
+        const interps = self._interps;
+
         if(progress === 0){
-            return this._fromGeometry;
+            return self._fromGeom;
         } else if (progress === 1){
-            return this._toGeometry;
+            return toGeom;
         }
 
-        if(this._toGeometry.type === 'MultiPolygon'){
-            var c: azmaps.data.Position[][][] = [];
+        if(toGeom.type === 'MultiPolygon'){
+            const c: azmaps.data.Position[][][] = [];
 
-            this._interpolators.forEach(interpolator => {
+            interps.forEach(interpolator => {
                 c.push(<azmaps.data.Position[][]>interpolator.interpolate(progress).coordinates);
             });
 
@@ -31,10 +36,10 @@ export class GeometryInterpolator  {
                 type: 'MultiPolygon',
                 coordinates: c
             };
-        } else if (this._toGeometry.type === 'GeometryCollection'){
-            var geoms: azmaps.data.Geometry[] = [];
+        } else if (toGeom.type === 'GeometryCollection'){
+            const geoms: azmaps.data.Geometry[] = [];
 
-            this._interpolators.forEach(interpolator => {
+            interps.forEach(interpolator => {
                 geoms.push(interpolator.interpolate(progress));
             });
 
@@ -45,22 +50,24 @@ export class GeometryInterpolator  {
             };
         }
 
-        return this._interpolators[0].interpolate(progress);
+        return interps[0].interpolate(progress);
     }
 
-    private _initInterpolators() {
-        var fromGeoms: azmaps.data.Geometry[] = [];
-        var toGeoms: azmaps.data.Geometry[] = [];
+    private _initInterps() {
+        const self = this;
 
-        this.extractGeometries(this._fromGeometry, fromGeoms);
-        this.extractGeometries(this._toGeometry, toGeoms);
+        const fromGeoms: azmaps.data.Geometry[] = [];
+        const toGeoms: azmaps.data.Geometry[] = [];
+
+        self._extractGeoms(self._fromGeom, fromGeoms);
+        self._extractGeoms(self._toGeom, toGeoms);
 
         //Fill gap of geometries transitioning from.
         if(fromGeoms.length < toGeoms.length){
 
             if(fromGeoms.length > 0){
-                var c = azmaps.data.BoundingBox.getCenter(azmaps.data.BoundingBox.fromData(fromGeoms[0]));
-                var fillGeom: azmaps.data.Geometry = {
+                const c = azmaps.data.BoundingBox.getCenter(azmaps.data.BoundingBox.fromData(fromGeoms[0]));
+                const fillGeom: azmaps.data.Geometry = {
                     type: fromGeoms[0].type,
                     coordinates: []
                 };
@@ -80,19 +87,19 @@ export class GeometryInterpolator  {
                 }
 
                 //Transitioning "from" less geometries to more, expand from a point near the center of the "from" geometry and expand to the "to" geometry.
-                for(var i = fromGeoms.length, len = toGeoms.length; i < len; i++){
+                for(let i = fromGeoms.length, len = toGeoms.length; i < len; i++){
                     fromGeoms.push(fillGeom);
                 }
             }
         } 
         
         //Crate interpolators
-        for(var i = 0; i < toGeoms.length; i++){
-            this._interpolators.push(new SimpleGeometryInterpolator(fromGeoms[i], toGeoms[i]));
+        for(let i = 0; i < toGeoms.length; i++){
+            self._interps.push(new SimpleGeometryInterpolator(fromGeoms[i], toGeoms[i]));
         }
     }
 
-    private extractGeometries(geom: azmaps.data.Geometry, targetArray: azmaps.data.Geometry[]){
+    private _extractGeoms(geom: azmaps.data.Geometry, targetArray: azmaps.data.Geometry[]){
         switch(geom.type){
             case 'MultiPolygon':
                 geom.coordinates.forEach(p => {
@@ -101,16 +108,16 @@ export class GeometryInterpolator  {
                         coordinates: <azmaps.data.Position[][]>p
                     });
                 });
-            break;
+                break;
             case 'GeometryCollection':
                 //@ts-ignore
                 (<azmaps.data.GeometryCollection>geom).geometries.forEach(g => {
-                    this.extractGeometries(g, targetArray);
+                    this._extractGeoms(g, targetArray);
                 });
-            break;
+                break;
             default:
                 targetArray.push(geom);
-            break; 
+                break; 
         }
     }
 }

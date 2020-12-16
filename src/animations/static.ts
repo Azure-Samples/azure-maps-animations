@@ -77,7 +77,7 @@ export function dropMarkers(markers: azmaps.HtmlMarker | azmaps.HtmlMarker[], ma
         return new DropAnimation(s, map, height, options);
     }
 
-    throw 'No markers specified.'
+    throw 'No markers specified.';
 }
 
 /**
@@ -191,15 +191,15 @@ export function extractRoutePoints(shapes: azmaps.data.FeatureCollection | azmap
 
     if(Array.isArray(shapes)){
         route = [];
-        var mode: string;
+        let mode: string;
 
         for(let i = 0, len = shapes.length; i < len; i++){
-            let f;
+            let f: azmaps.data.Feature<azmaps.data.Geometry, any>;
 
             if(shapes[i] instanceof azmaps.Shape){
                 f = (<azmaps.Shape>shapes[i]).toJson();
             }else {
-                f = shapes[i];
+                f = <azmaps.data.Feature<azmaps.data.Geometry, any>>shapes[i];
             }
 
             if(!mode &&
@@ -257,8 +257,7 @@ export function morph(shape: azmaps.Shape, newGeometry: azmaps.data.Geometry, op
  * @param callback A callback function that is called after the delay period.
  */
 export function delay(timeout: number, callback?: string | Function): IPlayableAnimation {
-    let animation = new SimpleIntervalAnimation(callback, timeout, 1);
-    return animation;
+    return new SimpleIntervalAnimation(callback, timeout, 1);
 }
 
 /**
@@ -268,8 +267,7 @@ export function delay(timeout: number, callback?: string | Function): IPlayableA
  * @param numberOfIntervals The number of intervals to trigger in the animation. DEfault: Infinity
  */
 export function interval(period: number, callback?: string | Function, numberOfIntervals?: number): IPlayableAnimation {
-    let animation = new SimpleIntervalAnimation(callback, period, Math.max(numberOfIntervals || Infinity, 1));
-    return animation;
+    return new SimpleIntervalAnimation(callback, period, Math.max(numberOfIntervals || Infinity, 1));
 }
 
 /**
@@ -278,7 +276,7 @@ export function interval(period: number, callback?: string | Function, numberOfI
  * @param timeout The time, in milliseconds (thousandths of a second), the timer should delay in between executions of the specified callback function.
  */
 export function setInterval(callback: string | Function, timeout: number, ...args: any[]): number {
-    let animation = new SimpleIntervalAnimation(callback, timeout, Infinity, args);
+    const animation = new SimpleIntervalAnimation(callback, timeout, Infinity, args);
     animation.play();
     return animation._id;
 }
@@ -288,7 +286,7 @@ export function setInterval(callback: string | Function, timeout: number, ...arg
  * @param intervalId The ID from the creation of a setInterval.
  */
 export function clearInterval(intervalId: number): void {
-    let animation = AnimationManager.instance.getById(intervalId);
+    const animation = AnimationManager.instance.getById(intervalId);
     if(animation){
         animation.stop();
     }
@@ -300,7 +298,7 @@ export function clearInterval(intervalId: number): void {
  * @param timeout The time, in milliseconds (thousandths of a second), the timer should delay before executioning the specified callback function.
  */
 export function setTimeout(callback: string | Function, timeout: number, ...args: any[]): number {
-    let animation = new SimpleIntervalAnimation(callback, timeout, 1, args);
+    const animation = new SimpleIntervalAnimation(callback, timeout, 1, args);
     animation.play();
     return animation._id;
 }
@@ -344,19 +342,19 @@ export function flowingDashedLine(layer: azmaps.layer.LineLayer, options?: Movin
         });
     }
 
-    let dashLength = options.dashLength || 4;
-    let gapLength = options.gapLength || 4;
+    const dashLength = options.dashLength || 4;
+    const gapLength = options.gapLength || 4;
  
     //We divide the animation up into 40 steps to make careful use of the finite space in LineAtlas.
-    let steps = 40;
+    const steps = 40;
     
     // A # of steps proportional to the dashLength are devoted to manipulating the dash.
-    let dashSteps = steps * dashLength / (gapLength + dashLength);
+    const dashSteps = steps * dashLength / (gapLength + dashLength);
 
     // A # of steps proportional to the gapLength are devoted to manipulating the gap.
-    let gapSteps = steps - dashSteps;
+    const gapSteps = steps - dashSteps;
   
-    let animation = new FrameBasedAnimationTimer(40, (frameIdx) => {                  
+    const animation = new FrameBasedAnimationTimer(40, (frameIdx) => {                  
         let t, a, b, c, d;
 
         if (frameIdx < dashSteps) {

@@ -39,47 +39,46 @@ export abstract class MapPathPlayableAnaimation extends PlayableAnimation {
     }
 
     /** Sets the options of the animation. */
-    public setOptions(options: MapPathAnimationOptions): void {
+    public setOptions(options: MapPathAnimationOptions): void {       
         if (options) {
-            let no:MapPathAnimationOptions = {};
+            const self = this;
+            const opt = self._pathOptions;
 
             if (typeof options.duration === 'number' && options.duration  > 0) {
-                no.duration = options.duration || this._pathOptions.duration;
+                opt.duration = options.duration || opt.duration;
             }
 
             if (typeof options.captureMetadata === 'boolean') {
-                no.captureMetadata = options.captureMetadata;
+                opt.captureMetadata = options.captureMetadata;
             }
 
             if (typeof options.geodesic === 'boolean') {
-                no.geodesic = options.geodesic;
+                opt.geodesic = options.geodesic;
             }
 
             if (typeof options.reverse === 'boolean') {
-                no.reverse = options.reverse;
+                opt.reverse = options.reverse;
             }
 
             if (typeof options.pitch === 'number') {
-                no.pitch = options.pitch;
+                opt.pitch = options.pitch;
             }
 
             if (typeof options.zoom === 'number') {
-                no.zoom = options.zoom;
+                opt.zoom = options.zoom;
             }
 
             if (typeof options.rotate === 'boolean') {
-                no.rotate = options.rotate;
+                opt.rotate = options.rotate;
             }
 
             if (typeof options.rotationOffset === 'number') {
-                no.rotationOffset = options.rotationOffset;
+                opt.rotationOffset = options.rotationOffset;
             }
 
             if (options.map || options.map === null) {
-                no.map = options.map;
+                opt.map = options.map;
             }
-
-            Object.assign(this._pathOptions, no);
 
             super.setOptions(options);
         }
@@ -90,36 +89,38 @@ export abstract class MapPathPlayableAnaimation extends PlayableAnimation {
     ***************************/
  
     protected _setMapCamera(position: azmaps.data.Position, heading: number, animate: boolean): void {
-        if (this._pathOptions.map && position) {
+        const opt = this._pathOptions;
+
+        if (opt.map && position) {
             let cam = <azmaps.CameraOptions>{
                 center: position
             };
 
-            if (typeof this._pathOptions.pitch === 'number') {
-                cam.pitch = this._pathOptions.pitch;
+            if (typeof opt.pitch === 'number') {
+                cam.pitch = opt.pitch;
             }
 
-            if (typeof this._pathOptions.zoom === 'number') {
-                cam.zoom = this._pathOptions.zoom;
+            if (typeof opt.zoom === 'number') {
+                cam.zoom = opt.zoom;
             }
 
-            if (this._pathOptions.rotate && typeof heading === 'number') {
-                cam.bearing = (this._pathOptions.reverse)? heading + 180: heading;
+            if (opt.rotate && typeof heading === 'number') {
+                cam.bearing = (opt.reverse)? heading + 180: heading;
 
-                if (typeof this._pathOptions.rotationOffset === 'number') {
-                    cam.bearing += this._pathOptions.rotationOffset;
+                if (typeof opt.rotationOffset === 'number') {
+                    cam.bearing += opt.rotationOffset;
                 }
             }
 
             if (animate) {
                 cam.type = 'fly';
-                cam.duration = Math.min(60, this._pathOptions.duration);
+                cam.duration = Math.min(60, opt.duration);
             } else {
                 cam.type = 'jump';
             }
 
             //Set the initial view of the map.
-            this._pathOptions.map.setCamera(cam);
+            opt.map.setCamera(cam);
         }
     }
 

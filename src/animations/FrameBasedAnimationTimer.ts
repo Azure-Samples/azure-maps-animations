@@ -19,9 +19,9 @@ export interface FrameBasedAnimationEvent {
 /** A class for frame based animations. */
 export class FrameBasedAnimationTimer extends PlayableAnimation {
 
-    private _numberOfFrames: number = 0;
+    private _numFrames: number = 0;
     private _onFrame: (frameIdx: number) => void;
-    private _currentFrameIdx = -1;
+    private _curFrameIdx = -1;
 
     /**
      * An class for frame based animations.
@@ -31,27 +31,28 @@ export class FrameBasedAnimationTimer extends PlayableAnimation {
      */
     constructor(numberOfFrames: number, onFrame: (frameIdx: number) => void, options?: PlayableAnimationOptions){
         super(options);
+        const self = this;
 
-        this._numberOfFrames = numberOfFrames;
-        this._onFrame = onFrame;
+        self._numFrames = numberOfFrames;
+        self._onFrame = onFrame;
 
         if(options && options.autoPlay){
-            this.play();
+            self.play();
         }
     }
 
     /** Gets the current frame index of the animation. Returns -1 if animation hasn't started, or if there is 0 frames. */
     public getCurrentFrameIdx(): number {
-        if(this._numberOfFrames <= 0){
+        if(this._numFrames <= 0){
             return -1;
         }
 
-        return this._currentFrameIdx;
+        return this._curFrameIdx;
     }
 
     /** Gets the number of frames in the animation. */
     public getNumberOfFrames(): number {
-        return this._numberOfFrames;
+        return this._numFrames;
     }
 
     /**
@@ -59,8 +60,9 @@ export class FrameBasedAnimationTimer extends PlayableAnimation {
      * @param frameIdx The frame index to advance to.
      */
     public setFrameIdx(frameIdx: number): void {
-        if(frameIdx >= 0 || frameIdx < this._numberOfFrames){
-            this.seek(this._numberOfFrames / frameIdx)
+        const self = this;
+        if(frameIdx >= 0 || frameIdx < self._numFrames){
+            self.seek(self._numFrames / frameIdx)
         }
     }
 
@@ -69,15 +71,16 @@ export class FrameBasedAnimationTimer extends PlayableAnimation {
      * @param numberOfFrames The number of frames in the animation.
      */
     public setNumberOfFrames(numberOfFrames: number): void {
-        if(typeof numberOfFrames === 'number' && this._numberOfFrames !== numberOfFrames){
-            this._numberOfFrames = Math.max(numberOfFrames, 0);
-            this._currentFrameIdx = (numberOfFrames < this._currentFrameIdx )? this._currentFrameIdx : 0;
+        const self = this;
+        if(typeof numberOfFrames === 'number' && self._numFrames !== numberOfFrames){
+            self._numFrames = Math.max(numberOfFrames, 0);
+            self._curFrameIdx = (numberOfFrames < self._curFrameIdx )? self._curFrameIdx : 0;
 
             if(numberOfFrames <= 0){
-                this._currentFrameIdx = -1;
+                self._curFrameIdx = -1;
             }
 
-            this._triggerFrame(this._currentFrameIdx);
+            self._triggerFrame(self._curFrameIdx);
         }
     }
 
@@ -86,13 +89,14 @@ export class FrameBasedAnimationTimer extends PlayableAnimation {
     ////////////////////////////
 
     public onAnimationProgress(progress: number): { frameIdx: number } {
-        let nf = this._numberOfFrames;
+        const self = this;
+        let nf = self._numFrames;
 
         if(nf > 0){
             //Need to get even spaced frame periods.
             let frameIdx = Math.round(progress * nf - 0.49999999999999999999999);
 
-            if(frameIdx !== this._currentFrameIdx) {
+            if(frameIdx !== self._curFrameIdx) {
                 //When progress exactly 1, the frameIdx will be equal to the number of frames, but we want one less. This means that the last frame will be slightly longer (a couple of ms in a most cases).
                 if(frameIdx === nf){
                     frameIdx--;
@@ -101,7 +105,7 @@ export class FrameBasedAnimationTimer extends PlayableAnimation {
                     frameIdx = -1;
                 }
 
-                this._triggerFrame(frameIdx);
+                self._triggerFrame(frameIdx);
 
                 return  { frameIdx: frameIdx };
             }
@@ -111,18 +115,19 @@ export class FrameBasedAnimationTimer extends PlayableAnimation {
     }
 
     private _triggerFrame(frameIdx): void {
-        if(this._onFrame && frameIdx !== -1){
-            this._onFrame(frameIdx);
+        const self = this;
+        if(self._onFrame && frameIdx !== -1){
+            self._onFrame(frameIdx);
         } 
 
-        this._currentFrameIdx = frameIdx;
+        self._curFrameIdx = frameIdx;
 
         if(frameIdx !== -1){
-            this._invokeEvent('onframe',  {
+            self._invokeEvent('onframe',  {
                 type: 'onFrame',
                 frameIdx: frameIdx,
-                animation: this,
-                numFrames: this._numberOfFrames
+                animation: self,
+                numFrames: self._numFrames
             });
         }
     }

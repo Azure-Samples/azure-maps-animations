@@ -13,7 +13,7 @@ export class MorphShapeAnimation extends MapPathPlayableAnaimation {
     ***************************/
 
     private _shape: azmaps.Shape;
-    private _interpolator: GeometryInterpolator;
+    private _interp: GeometryInterpolator;
     private _heading: number;
     private _pixelHeading: number;
 
@@ -23,8 +23,10 @@ export class MorphShapeAnimation extends MapPathPlayableAnaimation {
 
     constructor(shape: azmaps.Shape, newGeometry: azmaps.data.Geometry, options?: MapPathAnimationOptions) {
         super();
+        const self = this;
+        const bbox = azmaps.data.BoundingBox;
 
-        this._shape = shape;
+        self._shape = shape;
 
         var g = shape.toJson().geometry;
 
@@ -33,25 +35,25 @@ export class MorphShapeAnimation extends MapPathPlayableAnaimation {
             g = new azmaps.data.Polygon(shape.getCircleCoordinates());
         }
 
-        this._interpolator = new GeometryInterpolator(shape.toJson().geometry, newGeometry);
+        self._interp = new GeometryInterpolator(shape.toJson().geometry, newGeometry);
 
-        var lastCenter = azmaps.data.BoundingBox.getCenter(this._shape.getBounds());
-        var newCenter = azmaps.data.BoundingBox.getCenter(azmaps.data.BoundingBox.fromData(newGeometry));
+        var lastCenter = bbox.getCenter(self._shape.getBounds());
+        var newCenter = bbox.getCenter(bbox.fromData(newGeometry));
 
-        this._heading = azmaps.math.getHeading(lastCenter, newCenter);
+        self._heading = azmaps.math.getHeading(lastCenter, newCenter);
 
         var pixels = azmaps.math.mercatorPositionsToPixels([lastCenter, newCenter], 21);
-        this._pixelHeading = Utils.getPixelHeading(pixels[0], pixels[1])
+        self._pixelHeading = Utils.getPixelHeading(pixels[0], pixels[1])
 
         if (options){
-            this.setOptions(options);
+            self.setOptions(options);
 
             if(options.autoPlay) {
-                this.play();
+                self.play();
             }  
         }
 
-        AnimationManager.instance.add(this);
+        AnimationManager.instance.add(self);
     }
 
     /**************************
@@ -62,25 +64,27 @@ export class MorphShapeAnimation extends MapPathPlayableAnaimation {
         position: azmaps.data.Position,
         heading: number
     } {
-        var g = this._interpolator.interpolate(progress);
+        const self = this;
+        const bbox = azmaps.data.BoundingBox;
+        const g = self._interp.interpolate(progress);
 
-        var newCenter = azmaps.data.BoundingBox.getCenter(azmaps.data.BoundingBox.fromData(g));
+        const newCenter = bbox.getCenter(bbox.fromData(g));
 
-        var heading: number = 0;
+        let heading: number = 0;
 
-        if(this._pathOptions.geodesic){
-            heading = this._heading;
+        if(self._pathOptions.geodesic){
+            heading = self._heading;
         } else {
-            heading = this._pixelHeading;
+            heading = self._pixelHeading;
         }
 
-        if(this._pathOptions.map){
-            this._setMapCamera(newCenter, heading, true);
+        if(self._pathOptions.map){
+            self._setMapCamera(newCenter, heading, true);
         }
 
-        let s = this._shape;
+        let s = self._shape;
 
-        if(this._pathOptions.captureMetadata){
+        if(self._pathOptions.captureMetadata){
             s.addProperty('heading', heading);
         }
 
