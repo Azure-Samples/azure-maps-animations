@@ -1239,16 +1239,17 @@ MIT License
                     m.setPaintProperty(id, 'raster-opacity', o.tileLayerOptions[frameIdx].opacity);
                 }
             };
-            _this._id = AnimationManager.instance.add(_this);
+            var self = _this;
+            self._id = AnimationManager.instance.add(self);
             var numFrames = 0;
             if (options) {
-                _this.setOptions(options);
+                self.setOptions(options);
                 if (options.tileLayerOptions) {
                     numFrames = options.tileLayerOptions.length;
                 }
             }
-            _this._animation = new FrameBasedAnimationTimer(numFrames, _this._onFrame, options);
-            _this._onComplete = _this._animation._onComplete;
+            self._animation = new FrameBasedAnimationTimer(numFrames, self._onFrame, options);
+            self._onComplete = self._animation._onComplete;
             return _this;
         }
         /**************************
@@ -1256,13 +1257,14 @@ MIT License
         ***************************/
         /** Disposes the layer. */
         AnimatedTileLayer.prototype.dispose = function () {
-            this._animation.stop();
-            AnimationManager.instance.remove(this);
-            AnimationManager.instance.remove(this._animation);
-            this._animation = undefined;
-            this._onComplete = undefined;
-            this._id = undefined;
-            this._options = undefined;
+            var self = this;
+            self._animation.stop();
+            AnimationManager.instance.remove(self);
+            AnimationManager.instance.remove(self._animation);
+            self._animation = undefined;
+            self._onComplete = undefined;
+            self._id = undefined;
+            self._options = undefined;
         };
         /** Gets the duration of the animation. Returns Infinity if the animations loops forever. */
         AnimatedTileLayer.prototype.getDuration = function () {
