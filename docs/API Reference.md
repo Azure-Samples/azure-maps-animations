@@ -1,6 +1,6 @@
 # API Reference
 
-The following document is the complete API referecence for theanimation library for the Azure Maps Web SDK.
+The following document is the complete API reference for the animation library for the Azure Maps Web SDK.
 
 **Namespace:**
 
@@ -28,7 +28,7 @@ The following document is the complete API referecence for theanimation library 
 
 The following static methods and classes are exposed on the `atlas.animations` namespace.
 
-### Static methods 
+### Static methods
 
 The following static methods are exposed on the `atlas.animations` namespace.
 
