@@ -926,9 +926,13 @@ MIT License
         };
         /**
          * Plays the animation.
+         * @param reset Specifies if the animation should reset before playing.
          */
-        PlayableAnimation.prototype.play = function () {
+        PlayableAnimation.prototype.play = function (reset) {
             var self = this;
+            if (reset) {
+                self.reset();
+            }
             if (self._rawProgress >= 1) {
                 //Animation is complete, restart.
                 self._rawProgress = 0;
@@ -1221,7 +1225,7 @@ MIT License
             _this._onFrame = function (frameIdx) {
                 var self = _this;
                 var o = self._options;
-                if (o.visible && o.tileLayerOptions && o.tileLayerOptions.length > 0 && frameIdx < o.tileLayerOptions.length) {
+                if (self._map && o.visible && o.tileLayerOptions && o.tileLayerOptions.length > 0 && frameIdx < o.tileLayerOptions.length) {
                     var m = self._map['map'];
                     var ct = self._currentTileLayer;
                     var id = void 0;
@@ -1389,12 +1393,23 @@ MIT License
         AnimatedTileLayer.prototype.onAdd = function (map) {
             var self = this;
             self._map = map;
+            //Need to wait a moment in case someone adds the layer after removing it.
             map.layers.add(self._tileLayers, self);
         };
         AnimatedTileLayer.prototype.onRemove = function () {
             var self = this;
-            self._map.layers.remove(self._tileLayers);
+            self.pause();
+            var m = self._map;
             self._map = null;
+            //Need to remove sublayers, but after the map has removed this layer as maps dispose/clear will also try and remove the sublayers.
+            setTimeout(function () {
+                var mapLayers = m.layers.getLayers();
+                self._tileLayers.forEach(function (tl) {
+                    if (mapLayers.indexOf(tl) > -1) {
+                        m.layers.remove(tl);
+                    }
+                });
+            }, 0);
         };
         /**
          * @internal
@@ -1406,7 +1421,11 @@ MIT License
         * @internal
         */
         AnimatedTileLayer.prototype._getLayerIds = function () {
-            return [this.id];
+            var ids = [];
+            this._tileLayers.forEach(function (t) {
+                ids.push(t.getId());
+            });
+            return ids; //[this.id];
         };
         /**
          * @internal
@@ -2704,6 +2723,63 @@ MIT License
         return RoutePathAnimation;
     }(MapPathPlayableAnaimation));
 
+    /** Animates the opacity of a feature. */
+    var OpacityAnimation = /** @class */ (function (_super) {
+        __extends(OpacityAnimation, _super);
+        /**************************
+        * Constructor
+        ***************************/
+        /**
+         * Animates the opacity of a feature.
+         * @param shapes An array shapes or HtmlMarkers to animatie opacity.
+         * @param initialOpacity The initial opacity of the shape. Default: `0`
+         * @param finalOpacity The final opacity of the shape. Default: `1`
+         * @param options Options for the animation.
+         */
+        function OpacityAnimation(shapes, initialOpacity, finalOpacity, options) {
+            var _this = _super.call(this, options) || this;
+            initialOpacity = initialOpacity || 0;
+            finalOpacity = finalOpacity || 1;
+            if (initialOpacity > finalOpacity) {
+                var t = finalOpacity;
+                finalOpacity = initialOpacity;
+                initialOpacity = t;
+            }
+            _this._minOpacity = initialOpacity;
+            _this._opacityWidth = finalOpacity - initialOpacity;
+            if (shapes && shapes.length > 0) {
+                var self_1 = _this;
+                self_1._shapes = shapes;
+                //Extract the offsets for each shape.
+                shapes.forEach(function (s) {
+                    s.setProperties(Object.assign(s.getProperties(), {
+                        opacity: initialOpacity
+                    }));
+                });
+                if (options && options.autoPlay) {
+                    self_1.play();
+                }
+            }
+            else {
+                throw 'No shape specified for animation.';
+            }
+            return _this;
+        }
+        /**************************
+        * Public Methods
+        ***************************/
+        OpacityAnimation.prototype.onAnimationProgress = function (progress) {
+            var self = this;
+            self._shapes.forEach(function (s) {
+                s.setProperties(Object.assign(s.getProperties(), {
+                    opacity: self._minOpacity + self._opacityWidth * progress
+                }));
+            });
+            return null;
+        };
+        return OpacityAnimation;
+    }(PlayableAnimation));
+
     /**
      * Adds an offset array property to point shapes and animates it's y value to simulate dropping.
      * Use with a symbol layer with the icon/text offset property set to ['get', 'offset'] and the opacity set to ['get', 'opacity'].
@@ -3033,6 +3109,21 @@ MIT License
         }, options);
         return animation;
     }
+    /**
+     * Fades an array of shapes in/out by adjusting its opacity.
+     * Use with a layer with the opacity/strokeOpacity/fillOpacity property set to ['get', 'opacity'].
+     * Play in reverse to fade out.
+     * @param shapes A one or more shapes to fade in/out.
+     * @param initialOpacity The initial opacity of the shape. Default: `0`
+     * @param finalOpacity The final opacity of the shape. Default: `1`
+     * @param options Options for the animation.
+     */
+    function fadeShapes(shapes, initialOpacity, finalOpacity, options) {
+        if (shapes.length > 0) {
+            return new OpacityAnimation(shapes, initialOpacity, finalOpacity, options);
+        }
+        throw 'No supported shapes specified.';
+    }
 
     /** Group animation handler. */
     var GroupAnimation = /** @class */ (function (_super) {
@@ -3091,9 +3182,13 @@ MIT License
         };
         /**
          * Plays the group of animations.
+         * @param reset Specifies if the animation should reset before playing.
          */
-        GroupAnimation.prototype.play = function () {
+        GroupAnimation.prototype.play = function (reset) {
             var self = this;
+            if (reset) {
+                self.reset();
+            }
             self._cancelAnimations = false;
             switch (self._options.playType) {
                 case 'together':
@@ -3316,7 +3411,8 @@ MIT License
         clearTimeout: clearTimeout,
         getEasingFn: getEasingFn,
         getEasingNames: getEasingNames,
-        flowingDashedLine: flowingDashedLine
+        flowingDashedLine: flowingDashedLine,
+        fadeShapes: fadeShapes
     });
 
     var layer = Namespace.merge("atlas.layer", baseLayer);

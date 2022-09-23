@@ -78,9 +78,15 @@ export class GroupAnimation extends azmaps.internal.EventEmitter<GroupAnimationE
 
     /**
      * Plays the group of animations.
+     * @param reset Specifies if the animation should reset before playing.
      */
-    public play(): void {
+    public play(reset?: boolean): void {
         const self = this;
+
+        if(reset) {
+            self.reset();
+        }
+        
         self._cancelAnimations = false;
 
         switch(self._options.playType){

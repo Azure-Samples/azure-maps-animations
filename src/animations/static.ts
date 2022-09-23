@@ -16,6 +16,7 @@ import { RoutePathAnimation } from './internal/RoutePathAnimation';
 import { Easings } from './internal/Easings';
 import { FrameBasedAnimationTimer } from './FrameBasedAnimationTimer';
 import { MovingDashLineOptions } from './options/MovingDashLineOptions';
+import { OpacityAnimation } from "./internal/OpacityAnimation";
 
 /**
  * Adds an offset array property to point shapes and animates it's y value to simulate dropping. 
@@ -26,11 +27,11 @@ import { MovingDashLineOptions } from './options/MovingDashLineOptions';
  * @param options Options for the animation.
  */
 export function drop(
-    shapes: azmaps.data.Point | azmaps.data.Feature<azmaps.data.Point, any> | azmaps.Shape | (azmaps.data.Point | azmaps.data.Feature<azmaps.data.Point, any> | azmaps.Shape)[], 
-    dataSource?: azmaps.source.DataSource, 
-    height?: number, 
+    shapes: azmaps.data.Point | azmaps.data.Feature<azmaps.data.Point, any> | azmaps.Shape | (azmaps.data.Point | azmaps.data.Feature<azmaps.data.Point, any> | azmaps.Shape)[],
+    dataSource?: azmaps.source.DataSource,
+    height?: number,
     options?: PlayableAnimationOptions): PlayableAnimation {
-        let s: azmaps.Shape[] = [];
+    let s: azmaps.Shape[] = [];
 
     if (Array.isArray(shapes)) {
         for (let i = 0, len = shapes.length; i < len; i++) {
@@ -65,11 +66,11 @@ export function dropMarkers(markers: azmaps.HtmlMarker | azmaps.HtmlMarker[], ma
 
     if (Array.isArray(markers)) {
         for (let i = 0, len = markers.length; i < len; i++) {
-            if (markers[i] instanceof azmaps.HtmlMarker){
+            if (markers[i] instanceof azmaps.HtmlMarker) {
                 s.push(markers[i] as azmaps.HtmlMarker);
             }
         }
-    } else if (markers instanceof azmaps.HtmlMarker){
+    } else if (markers instanceof azmaps.HtmlMarker) {
         s.push(markers as azmaps.HtmlMarker);
     }
 
@@ -89,14 +90,14 @@ export function dropMarkers(markers: azmaps.HtmlMarker | azmaps.HtmlMarker[], ma
 export function setCoordinates(shape: azmaps.Shape | azmaps.HtmlMarker, newCoordinates: azmaps.data.Position | azmaps.data.Position[] | azmaps.data.Position[][] | azmaps.data.Position[][][], options?: PathAnimationOptions | MapPathAnimationOptions): PlayableAnimation {
     let c = Utils.getSuitableCoordinates(shape, newCoordinates);
 
-    if(shape instanceof azmaps.Shape){
+    if (shape instanceof azmaps.Shape) {
         let t = shape.getType();
-        if(t === 'Point'){
+        if (t === 'Point') {
             return new PointTranslateAnimation(shape, c as azmaps.data.Position, options);
-        } else if (t !== 'GeometryCollection'){
+        } else if (t !== 'GeometryCollection') {
             return new MorphShapeAnimation(shape, {
                 type: shape.getType(),
-                coordinates: c   
+                coordinates: c
             }, options);
         }
     }
@@ -137,7 +138,7 @@ export function moveAlongPath(path: azmaps.data.Position[] | azmaps.data.LineStr
                 } else if (path.getType() === 'Polygon') {
                     const c = <azmaps.data.Position[][]>path.getCoordinates();
 
-                    if(c.length > 0){
+                    if (c.length > 0) {
                         p = c[0];
                     }
                 }
@@ -189,56 +190,56 @@ export function extractRoutePoints(shapes: azmaps.data.FeatureCollection | azmap
 
     let route: azmaps.data.Feature<azmaps.data.Point, any>[];
 
-    if(Array.isArray(shapes)){
+    if (Array.isArray(shapes)) {
         route = [];
         let mode: string;
 
-        for(let i = 0, len = shapes.length; i < len; i++){
+        for (let i = 0, len = shapes.length; i < len; i++) {
             let f: azmaps.data.Feature<azmaps.data.Geometry, any>;
 
-            if(shapes[i] instanceof azmaps.Shape){
+            if (shapes[i] instanceof azmaps.Shape) {
                 f = (<azmaps.Shape>shapes[i]).toJson();
-            }else {
+            } else {
                 f = <azmaps.data.Feature<azmaps.data.Geometry, any>>shapes[i];
             }
 
-            if(!mode &&
-                ['Polygon', 'MultiLineString','MultiPolygon','GeometryCollection'].indexOf(f.geometry.type) === -1 &&
+            if (!mode &&
+                ['Polygon', 'MultiLineString', 'MultiPolygon', 'GeometryCollection'].indexOf(f.geometry.type) === -1 &&
                 ((f.properties[timestampProperty] || typeof f.properties._timestamp === 'number') ||
-                (f.geometry.type !== 'Point' && f.properties.waypoints))){
-                    mode = f.geometry.type;
-                }
+                    (f.geometry.type !== 'Point' && f.properties.waypoints))) {
+                mode = f.geometry.type;
+            }
 
-            if(mode){
+            if (mode) {
                 //Only allow one LineString or MultiPoint through.
-                if(route.length === 0 || f.geometry.type === 'Point'){
+                if (route.length === 0 || f.geometry.type === 'Point') {
                     let r = this.extractRoutePoints(f, timestampProperty);
-                    if(r){
+                    if (r) {
                         route = route.concat(r);
 
-                        if(mode !== 'Point'){
+                        if (mode !== 'Point') {
                             break;
                         }
                     }
                 }
             }
-        };            
-    } else if(shapes instanceof azmaps.Shape) {
+        };
+    } else if (shapes instanceof azmaps.Shape) {
         route = Utils.extractRoutePointsFromFeature(shapes.toJson(), timestampProperty);
-    } else if(shapes.type === 'FeatureCollection') {
+    } else if (shapes.type === 'FeatureCollection') {
         route = this.extractRoutePoints((<azmaps.data.FeatureCollection>shapes).features, timestampProperty);
-    }else if (shapes.type){
+    } else if (shapes.type) {
         route = Utils.extractRoutePointsFromFeature(<azmaps.data.Feature<azmaps.data.Geometry, any>>shapes, timestampProperty);
     }
 
-    if(route){
+    if (route) {
         //Sort the points by the _timestamp property.
         route = route.sort((a: azmaps.data.Feature<azmaps.data.Point, any>, b: azmaps.data.Feature<azmaps.data.Point, any>) => {
             return a.properties._timestamp - b.properties._timestamp;
         });
     }
 
-    return (route.length > 0)? route : null;
+    return (route.length > 0) ? route : null;
 }
 
 /**
@@ -287,7 +288,7 @@ export function setInterval(callback: string | Function, timeout: number, ...arg
  */
 export function clearInterval(intervalId: number): void {
     const animation = AnimationManager.instance.getById(intervalId);
-    if(animation){
+    if (animation) {
         animation.stop();
     }
 }
@@ -322,7 +323,7 @@ export function getEasingFn(easing: string): (progress: number) => number {
 /**
  * Retrieves the name of all the built in easing functions.
  */
-export function getEasingNames(): string[]{
+export function getEasingNames(): string[] {
     return Object.keys(Easings);
 }
 
@@ -334,9 +335,9 @@ export function getEasingNames(): string[]{
  */
 export function flowingDashedLine(layer: azmaps.layer.LineLayer, options?: MovingDashLineOptions): IPlayableAnimation {
     //From: https://stackoverflow.com/questions/43057469/dashed-line-animations-in-mapbox-gl-js
-    
+
     //Round lineCap will cause an error, change to butt cap.
-    if(layer.getOptions().lineCap === 'round') {
+    if (layer.getOptions().lineCap === 'round') {
         layer.setOptions({
             lineCap: 'butt'
         });
@@ -344,17 +345,17 @@ export function flowingDashedLine(layer: azmaps.layer.LineLayer, options?: Movin
 
     const dashLength = options.dashLength || 4;
     const gapLength = options.gapLength || 4;
- 
+
     //We divide the animation up into 40 steps to make careful use of the finite space in LineAtlas.
     const steps = 40;
-    
+
     // A # of steps proportional to the dashLength are devoted to manipulating the dash.
     const dashSteps = steps * dashLength / (gapLength + dashLength);
 
     // A # of steps proportional to the gapLength are devoted to manipulating the gap.
     const gapSteps = steps - dashSteps;
-  
-    const animation = new FrameBasedAnimationTimer(40, (frameIdx) => {                  
+
+    const animation = new FrameBasedAnimationTimer(40, (frameIdx) => {
         let t, a, b, c, d;
 
         if (frameIdx < dashSteps) {
@@ -368,13 +369,30 @@ export function flowingDashedLine(layer: azmaps.layer.LineLayer, options?: Movin
             a = 0;
             b = (1 - t) * gapLength;
             c = dashLength;
-            d = t * gapLength;          
+            d = t * gapLength;
         }
 
         layer.setOptions({
             strokeDashArray: [a, b, c, d]
-        });        
+        });
     }, options);
-    
+
     return animation;
+}
+
+/**
+ * Fades an array of shapes in/out by adjusting its opacity. 
+ * Use with a layer with the opacity/strokeOpacity/fillOpacity property set to ['get', 'opacity'].
+ * Play in reverse to fade out.
+ * @param shapes A one or more shapes to fade in/out. 
+ * @param initialOpacity The initial opacity of the shape. Default: `0`
+ * @param finalOpacity The final opacity of the shape. Default: `1`
+ * @param options Options for the animation.
+ */
+export function fadeShapes(shapes: azmaps.Shape[], initialOpacity?: number, finalOpacity?: number, options?: PlayableAnimationOptions): PlayableAnimation {
+    if (shapes.length > 0) {
+        return new OpacityAnimation(shapes, initialOpacity, finalOpacity, options);
+    }
+
+    throw 'No supported shapes specified.'
 }

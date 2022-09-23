@@ -40,68 +40,68 @@ See the [documentation](https://github.com/Azure-Samples/azure-maps-animations/t
 
 ## Samples
 
-[Animate a choropleth map](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20a%20choropleth%20map)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animate-a-choropleth-map.jpg" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20a%20choropleth%20map)
+[Animate a choropleth map](https://samples.azuremaps.com/?sample=animate-a-choropleth-map)
+<br/>[<img src="https://samples.azuremaps.com/animations/animate-a-choropleth-map/screenshot.jpg" height="200px">](https://samples.azuremaps.com/?sample=animate-a-choropleth-map)
 
-[Animate a GPS trace](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20a%20GPS%20trace)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animate-a-GPS-trace.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20a%20GPS%20trace)
+[Animate a GPS trace](https://samples.azuremaps.com/?sample=animate-a-GPS-trace)
+<br/>[<img src="https://samples.azuremaps.com/animations/animate-a-gps-trace/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animate-a-GPS-trace)
 
-[Animate a snakeline](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20a%20snakeline)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animate-a-snakeline.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20a%20snakeline)
+[Animate a snakeline](https://samples.azuremaps.com/?sample=animate-a-snakeline)
+<br/>[<img src="https://samples.azuremaps.com/animations/animate-a-snakeline/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animate-a-snakeline)
 
-[Animate along a path](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20along%20a%20path)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animate-along-a-path.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20along%20a%20path)
+[Animate along a path](https://samples.azuremaps.com/?sample=animate-along-a-path)
+<br/>[<img src="https://samples.azuremaps.com/animations/animate-along-a-path/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animate-along-a-path)
 
-[Animate along a route path](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20along%20a%20route%20path)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animate-along-a-route-path.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20along%20a%20route%20path)
+[Animate along a route path](https://samples.azuremaps.com/?sample=animate-along-a-route-path)
+<br/>[<img src="https://samples.azuremaps.com/animations/animate-along-a-route-path/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animate-along-a-route-path)
 
-[Animate marker along path](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20marker%20along%20path)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animate-marker-along-path.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20marker%20along%20path)
+[Animate marker along path](https://samples.azuremaps.com/?sample=animate-marker-along-path)
+<br/>[<img src="https://samples.azuremaps.com/animations/animate-marker-along-path/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animate-marker-along-path)
 
-[Animate multiple points](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20multiple%20points)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animate-multiple-points.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20multiple%20points)
+[Animate multiple points](https://samples.azuremaps.com/?sample=animate-multiple-points)
+<br/>[<img src="https://samples.azuremaps.com/animations/animate-multiple-points/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animate-multiple-points)
 
-[Animate point along path](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20point%20along%20path)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animate-point-along-path.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20point%20along%20path)
+[Animate point along path](https://samples.azuremaps.com/?sample=animate-point-along-path)
+<br/>[<img src="https://samples.azuremaps.com/animations/animate-point-along-path/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animate-point-along-path)
 
-[Animate to new position of marker](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20to%20new%20position%20of%20marker)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animate-to-new-position-of-marker.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20to%20new%20position%20of%20marker)
+[Animate to new position of marker](https://samples.azuremaps.com/?sample=animate-to-new-position-of-marker)
+<br/>[<img src="https://samples.azuremaps.com/animations/animate-to-new-position-of-marker/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animate-to-new-position-of-marker)
 
-[Animate to new position of point](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20to%20new%20position%20of%20point)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animate-to-new-position-of-point.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animate%20to%20new%20position%20of%20point)
+[Animate to new position of point](https://samples.azuremaps.com/?sample=animate-to-new-position-of-point)
+<br/>[<img src="https://samples.azuremaps.com/animations/animate-to-new-position-of-point/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animate-to-new-position-of-point)
 
-[Animated tile layer](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animated%20tile%20layer)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animated-tile-layer.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animated%20tile%20layer)
+[Animated tile layer](https://samples.azuremaps.com/?sample=animated-tile-layer)
+<br/>[<img src="https://samples.azuremaps.com/animations/animated-tile-layer/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animated-tile-layer)
 
-[Animated traffic flow](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animated%20traffic%20flow)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animated-traffic-flow.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animated%20traffic%20flow)
+[Animated traffic flow](https://samples.azuremaps.com/?sample=animated-traffic-flow)
+<br/>[<img src="https://samples.azuremaps.com/animations/animated-traffic-flow/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animated-traffic-flow)
 
-[Animation easings](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animation%20easings)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Animation-easings.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Animation%20easings)
+[Animation easings](https://samples.azuremaps.com/?sample=animation-easings)
+<br/>[<img src="https://samples.azuremaps.com/animations/animation-easings/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animation-easings)
 
-[Bouncing marker animation](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Bouncing%20marker%20animation)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Bouncing-marker-animation.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Bouncing%20marker%20animation)
+[Bouncing marker animation](https://samples.azuremaps.com/?sample=bouncing-marker-animation)
+<br/>[<img src="https://samples.azuremaps.com/animations/bouncing-marker-animation/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=bouncing-marker-animation)
 
-[Drop markers on interval](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Drop%20markers%20on%20interval)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Drop-markers-on-interval.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Drop%20markers%20on%20interval)
+[Drop markers on interval](https://samples.azuremaps.com/?sample=drop-markers-on-interval)
+<br/>[<img src="https://samples.azuremaps.com/animations/drop-markers-on-interval/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=drop-markers-on-interval)
 
-[Drop multiple markers animation](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Drop%20multiple%20markers%20animation)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Drop-multiple-markers-animation.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Drop%20multiple%20markers%20animation)
+[Drop multiple markers animation](https://samples.azuremaps.com/?sample=drop-multiple-markers-animation)
+<br/>[<img src="https://samples.azuremaps.com/animations/drop-multiple-markers-animation/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=drop-multiple-markers-animation)
 
-[Drop multiple symbols animation](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Drop%20multiple%20symbols%20animation)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Drop-multiple-symbols-animation.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Drop%20multiple%20symbols%20animation)
+[Drop multiple symbols animation](https://samples.azuremaps.com/?sample=drop-multiple-symbols-on-interval)
+<br/>[<img src="https://samples.azuremaps.com/animations/drop-multiple-symbols-animation/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=drop-multiple-symbols-on-interval)
 
-[Drop symbol animation](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Drop%20symbol%20animation)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Drop-symbol-animation.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Drop%20symbol%20animation)
+[Drop symbol animation](https://samples.azuremaps.com/?sample=drop-symbol-animation)
+<br/>[<img src="https://samples.azuremaps.com/animations/drop-symbol-animation/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=drop-symbol-animation)
 
-[Drop symbols on interval](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Drop%20symbols%20on%20interval)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Drop-symbols-on-interval.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Drop%20symbols%20on%20interval)
+[Drop symbols on interval](https://samples.azuremaps.com/?sample=drop-symbols-on-interval)
+<br/>[<img src="https://samples.azuremaps.com/animations/drop-symbols-on-interval/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=drop-symbols-on-interval)
 
-[Morph shape animation](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Morph%20shape%20animation)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Morph-shape-animation.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Morph%20shape%20animation)
+[Morph shape animation](https://samples.azuremaps.com/?sample=morph-shape-animation)
+<br/>[<img src="https://samples.azuremaps.com/animations/morph-shape-animation/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=morph-shape-animation)
 
-[Moving dashed line](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Moving%20dashed%20line)
-<br/>[<img src="https://github.com/Azure-Samples/AzureMapsCodeSamples/raw/master/AzureMapsCodeSamples/SiteResources/screenshots/Moving-dashed-line.gif" height="200px">](https://azuremapscodesamples.azurewebsites.net/index.html?sample=Moving%20dashed%20line)
+[Moving dashed line](https://samples.azuremaps.com/?sample=moving-dashed-line)
+<br/>[<img src="https://samples.azuremaps.com/animations/moving-dashed-line/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=moving-dashed-line)
 
 ## Roadmap
 

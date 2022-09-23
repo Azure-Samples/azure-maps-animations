@@ -1,7 +1,7 @@
 
 /** Options for a group of animations. */
 export interface GroupAnimationOptions {
-    /** How to play the animations. Default: 'playType' */
+    /** How to play the animations. Default: 'together' */
     playType: 'together' | 'sequential' | 'interval';
 
     /** If the `playType` is set to `interval`, this option specifies the time interval to start each animation in milliseconds. Default: `100` */

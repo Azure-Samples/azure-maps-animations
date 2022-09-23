@@ -275,6 +275,17 @@ declare namespace atlas {
          * Retrieves the name of all the built in easing functions.
          */
         export function getEasingNames(): string[];
+
+        /**
+         * Fades an array of shapes in/out by adjusting its opacity. 
+         * Use with a layer with the opacity/strokeOpacity/fillOpacity property set to ['get', 'opacity'].
+         * Play in reverse to fade out.
+         * @param shapes A one or more shapes to fade in/out. 
+         * @param initialOpacity The initial opacity of the shape. Default: `0`
+         * @param finalOpacity The final opacity of the shape. Default: `1`
+         * @param options Options for the animation.
+         */
+        export function fadeShapes(shapes: azmaps.Shape[], initialOpacity?: number, finalOpacity?: number, options?: PlayableAnimationOptions): PlayableAnimation;
     }
 
     export module layer {
@@ -333,7 +344,7 @@ declare namespace atlas {
 
     /** Options for a group of animations. */
     export interface GroupAnimationOptions {
-        /** How to play the animations. Default: 'playType' */
+        /** How to play the animations. Default: 'together' */
         playType: 'together' | 'sequential' | 'interval';
 
         /** If the `playType` is set to `interval`, this option specifies the time interval to start each animation in milliseconds. Default: `100` */

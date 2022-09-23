@@ -124,9 +124,14 @@ export abstract class PlayableAnimation extends azmaps.internal.EventEmitter<Pla
 
     /**
      * Plays the animation.
+     * @param reset Specifies if the animation should reset before playing.
      */
-    public play(): void {
+    public play(reset?: boolean): void {
         const self = this;
+
+        if(reset) {
+            self.reset();
+        }
 
         if (self._rawProgress >= 1){
             //Animation is complete, restart.

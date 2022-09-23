@@ -217,13 +217,27 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
     public onAdd(map: azmaps.Map): void {
         const self = this;
         self._map = map;
+
+        //Need to wait a moment in case someone adds the layer after removing it.
         map.layers.add(self._tileLayers, self);
     }
 
     public onRemove(): void {
         const self = this;
-        self._map.layers.remove(self._tileLayers);
+        self.pause();
+        const m = self._map;
         self._map = null;
+
+        //Need to remove sublayers, but after the map has removed this layer as maps dispose/clear will also try and remove the sublayers.
+        setTimeout(() => {
+            const mapLayers = m.layers.getLayers();
+
+            self._tileLayers.forEach(tl => {
+                if (mapLayers.indexOf(tl) > -1) {
+                    m.layers.remove(tl);
+                }
+            });
+        }, 0);
     }
 
     /**
@@ -237,7 +251,11 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
     * @internal
     */
     public _getLayerIds(): string[] {
-        return [this.id];
+        var ids = [];
+        this._tileLayers.forEach(t => {
+            ids.push(t.getId());
+        });
+        return ids;//[this.id];
     }
 
     /**
@@ -262,7 +280,7 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
         const self = this;
         let o = self._options;
 
-        if (o.visible && o.tileLayerOptions && o.tileLayerOptions.length > 0 && frameIdx < o.tileLayerOptions.length) {
+        if (self._map && o.visible && o.tileLayerOptions && o.tileLayerOptions.length > 0 && frameIdx < o.tileLayerOptions.length) {
             let m = self._map['map'];
             let ct = self._currentTileLayer;
             let id: string;
