@@ -41,7 +41,7 @@ See the [documentation](https://github.com/Azure-Samples/azure-maps-animations/t
 ## Samples
 
 [Animate a choropleth map](https://samples.azuremaps.com/?sample=animate-a-choropleth-map)
-<br/>[<img src="https://samples.azuremaps.com/animations/animate-a-choropleth-map/screenshot.jpg" height="200px">](https://samples.azuremaps.com/?sample=animate-a-choropleth-map)
+<br/>[<img src="https://samples.azuremaps.com/animations/animate-a-choropleth-map/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animate-a-choropleth-map)
 
 [Animate a GPS trace](https://samples.azuremaps.com/?sample=animate-a-GPS-trace)
 <br/>[<img src="https://samples.azuremaps.com/animations/animate-a-gps-trace/screenshot.gif" height="200px">](https://samples.azuremaps.com/?sample=animate-a-GPS-trace)
