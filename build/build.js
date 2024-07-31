@@ -88,7 +88,7 @@ let rollupError = false;
 
     // Read license.txt to define the banner for the packages.
     let banner = "/*\n";
-    banner += (await fs.readFile("./license.md", "utf8")).trim();
+    banner += (await fs.readFile("./LICENSE.md", "utf8")).trim();
     banner += "\n*/\n";
 
     let rollupInputOps, rollupOutputOps;

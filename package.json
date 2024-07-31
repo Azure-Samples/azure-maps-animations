@@ -43,7 +43,7 @@
   "files": [
     "typings/**/*",
     "dist/**/*",
-    "license.md"
+    "LICENSE.md"
   ],
   "types": "typings/index.d.ts",
   "main": "dist/azure-maps-animations.min.js"
