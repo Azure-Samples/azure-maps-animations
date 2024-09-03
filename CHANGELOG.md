@@ -1,5 +1,11 @@
 ## azure-maps-animations Changelog
 
+<a name="0.0.2"></a>
+# 0.0.2 (Unreleased)
+
+- Update dependencies versions.
+- Update readme links.
+
 <a name="0.0.1"></a>
 # 0.0.1 (2020-08-21)
 
