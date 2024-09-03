@@ -308,10 +308,10 @@ export class Utils {
             case 'MultiPoint':
                 if(feature.properties[timestampProperty] && 
                     Array.isArray(feature.properties[timestampProperty]) && 
-                    feature.geometry.coordinates.length === feature.properties[timestampProperty]) {
+                    feature.geometry.coordinates.length === feature.properties[timestampProperty].length) {
 
                     for(let i = 0, len = feature.geometry.coordinates.length; i < len; i++){
-                        t = azmaps.math.parseTimestamp(feature.properties[timestampProperty]);
+                        t = azmaps.math.parseTimestamp(feature.properties[timestampProperty][i]);
 
                         if(t){
                             pts.push(new azmaps.data.Feature(new azmaps.data.Point((<azmaps.data.Position[]>feature.geometry.coordinates)[i]), {
