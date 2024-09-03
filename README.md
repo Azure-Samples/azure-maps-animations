@@ -124,15 +124,14 @@ The following are some ideas to take this project further.
 
 * [Azure Maps Web SDK Open modules](https://github.com/microsoft/Maps/blob/master/AzureMaps.md#open-web-sdk-modules) - A collection of open source modules that extend the Azure Maps Web SDK.
 * [Azure Maps Web SDK Samples](https://github.com/Azure-Samples/AzureMapsCodeSamples)
-* [Azure Maps Gov Cloud Web SDK Samples](https://github.com/Azure-Samples/AzureMapsGovCloudCodeSamples)
 * [Azure Maps & Azure Active Directory Samples](https://github.com/Azure-Samples/Azure-Maps-AzureAD-Samples)
 * [List of open-source Azure Maps projects](https://github.com/microsoft/Maps/blob/master/AzureMaps.md)
 
 ## Additional Resources
 
-* [Azure Maps (main site)](https://azure.com/maps)
+* [Azure Maps (main site)](https://azure.microsoft.com/en-us/products/azure-maps/)
 * [Azure Maps Documentation](https://docs.microsoft.com/azure/azure-maps/index)
-* [Azure Maps Blog](https://azure.microsoft.com/blog/topics/azure-maps/)
+* [Azure Maps Blog](https://azure.microsoft.com/en-us/blog/product/azure-maps/)
 * [Microsoft Q&A](https://docs.microsoft.com/answers/topics/azure-maps.html)
 * [Azure Maps feedback](https://feedback.azure.com/forums/909172-azure-maps)
 
