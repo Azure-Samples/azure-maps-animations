@@ -1,6 +1,6 @@
 {
   "name": "azure-maps-animations",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A module for the Azure Maps Web SDK that provides tools for animating data on the map.",
   "keywords": [
     "azure",
