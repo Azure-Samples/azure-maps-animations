@@ -34,7 +34,7 @@ A rich library of animations for use with the Azure Maps Web SDK.
 
 ## Getting started
 
-Download the project and copy the `azure-maps-animations` JavaScript file from the `dist` folder into your project. 
+Download the project and copy the `azure-maps-animation` JavaScript file from the `dist` folder into your project. 
 
 See the [documentation](https://github.com/Azure-Samples/azure-maps-animations/tree/main/docs) for more details on a specific feature or take a look at one of the samples below.
 
