@@ -49,8 +49,8 @@ let rollupError = false;
     //const [majorVersion, minorVersion] = pkg.version.split(".");
 
     // File name and path for non-minified browser js
-    const outFilePath = `${distDirPath}/azure-maps-animation.js`;
-    const outMinFilePath = `${distDirPath}/azure-maps-animation.min.js`;
+    const outFilePath = `${distDirPath}/azure-maps-animations.js`;
+    const outMinFilePath = `${distDirPath}/azure-maps-animations.min.js`;
 
     const inputPath = "./js/index.js";
 

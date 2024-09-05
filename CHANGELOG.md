@@ -1,4 +1,4 @@
-## azure-maps-animation Changelog
+## azure-maps-animations Changelog
 
 <a name="0.0.2"></a>
 # 0.0.2 (Unreleased)
