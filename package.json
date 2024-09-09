@@ -20,7 +20,7 @@
   "author": "Microsoft Corporation",
   "license": "MIT",
   "dependencies": {
-    "azure-maps-control": "^3.3.0"
+    "azure-maps-control": "^2.0.25 || ^3.0.1"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.136",
