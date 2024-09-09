@@ -1,5 +1,5 @@
 {
-  "name": "azure-maps-animations",
+  "name": "@azure-maps/animations",
   "version": "0.0.2",
   "description": "A module for the Azure Maps Web SDK that provides tools for animating data on the map.",
   "keywords": [
@@ -20,12 +20,13 @@
   "author": "Microsoft Corporation",
   "license": "MIT",
   "dependencies": {
-    "azure-maps-control": "^3.3.0"
+    "azure-maps-control": "^2.0.25 || ^3.0.1"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.136",
     "@types/mocha": "^5.2.6",
     "@types/puppeteer": "^1.20.4",
+    "@types/geojson": "^7946.0.14",
     "flubber": "^0.4.2",
     "fs-extra": "^7.0.1",
     "lodash": "^4.17.15",

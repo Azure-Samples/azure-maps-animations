@@ -7,7 +7,6 @@
         "esModuleInterop": true,
         "importHelpers": true,
         "alwaysStrict": true,
-        "skipLibCheck": true,
         "target": "es5",
         "baseUrl": "./",
         "lib": [
