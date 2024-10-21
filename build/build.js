@@ -94,6 +94,7 @@ let rollupError = false;
     let rollupInputOps, rollupOutputOps;
     if (!args.isNpmBuild) {
         // Set rollup options for browser builds.
+        console.log("Building IIFE version");
         rollupInputOps = {
             external: ["azure-maps-control"],
             onwarn: rollupWarn,
@@ -120,12 +121,15 @@ let rollupError = false;
             }
         };
     } else {
+        console.log("Building CommonJS version");
         rollupInputOps = {
             external: ["azure-maps-control"],
             onwarn: rollupWarn,
             input: inputPath,
             plugins: [
-                nodeResolve(),
+                nodeResolve({
+                    browser: true,
+                }),
                 commonjs({
                     namedExports: namedExports
                 })
