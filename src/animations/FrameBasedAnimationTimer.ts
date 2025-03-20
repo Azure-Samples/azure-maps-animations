@@ -124,7 +124,7 @@ export class FrameBasedAnimationTimer extends PlayableAnimation {
 
         if(frameIdx !== -1){
             self._invokeEvent('onframe',  {
-                type: 'onFrame',
+                type: 'onframe',
                 frameIdx: frameIdx,
                 animation: self,
                 numFrames: self._numFrames

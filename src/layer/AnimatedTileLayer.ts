@@ -43,16 +43,16 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
 
         let numFrames = 0;
 
-        if (options) {
-            self.setOptions(options);
-
-            if (options.tileLayerOptions) {
-                numFrames = options.tileLayerOptions.length;
-            }
+        if (options && options.tileLayerOptions) {
+            numFrames = options.tileLayerOptions.length;
         }
 
         self._animation = new FrameBasedAnimationTimer(numFrames, self._onFrame, options);
         self._onComplete = self._animation._onComplete;
+
+        if (options) {
+            self.setOptions(options);
+        }
     }
 
     /**************************
@@ -182,8 +182,8 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
 
                 if (options.visible) {
                     let frameIdx = animation.getCurrentFrameIdx();
-                    if (options.tileLayerOptions.length > 0) {
-                        self._currentTileLayer.setOptions({ fadeDuration: 0, opacity: options.tileLayerOptions[frameIdx].opacity });
+                    if (opt.tileLayerOptions && opt.tileLayerOptions.length > 0) {
+                        self._currentTileLayer.setOptions({ fadeDuration: 0, opacity: opt.tileLayerOptions[frameIdx].opacity });
                     }
                 } else {
                     tileLayers.forEach(l => l.setOptions({
