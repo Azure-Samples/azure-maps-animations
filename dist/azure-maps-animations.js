@@ -26,18 +26,18 @@ MIT License
     'use strict';
 
     /*! *****************************************************************************
-    Copyright (c) Microsoft Corporation.
+    Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+    this file except in compliance with the License. You may obtain a copy of the
+    License at http://www.apache.org/licenses/LICENSE-2.0
 
-    Permission to use, copy, modify, and/or distribute this software for any
-    purpose with or without fee is hereby granted.
+    THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+    WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+    MERCHANTABLITY OR NON-INFRINGEMENT.
 
-    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-    REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-    AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-    INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-    LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-    OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-    PERFORMANCE OF THIS SOFTWARE.
+    See the Apache Version 2.0 License for specific language governing permissions
+    and limitations under the License.
     ***************************************************************************** */
     /* global Reflect, Promise */
 
@@ -1189,7 +1189,7 @@ MIT License
             self._curFrameIdx = frameIdx;
             if (frameIdx !== -1) {
                 self._invokeEvent('onframe', {
-                    type: 'onFrame',
+                    type: 'onframe',
                     frameIdx: frameIdx,
                     animation: self,
                     numFrames: self._numFrames
@@ -1246,14 +1246,14 @@ MIT License
             var self = _this;
             self._id = AnimationManager.instance.add(self);
             var numFrames = 0;
-            if (options) {
-                self.setOptions(options);
-                if (options.tileLayerOptions) {
-                    numFrames = options.tileLayerOptions.length;
-                }
+            if (options && options.tileLayerOptions) {
+                numFrames = options.tileLayerOptions.length;
             }
             self._animation = new FrameBasedAnimationTimer(numFrames, self._onFrame, options);
             self._onComplete = self._animation._onComplete;
+            if (options) {
+                self.setOptions(options);
+            }
             return _this;
         }
         /**************************
@@ -1361,8 +1361,8 @@ MIT License
                     opt.visible = options.visible;
                     if (options.visible) {
                         var frameIdx = animation.getCurrentFrameIdx();
-                        if (options.tileLayerOptions.length > 0) {
-                            self._currentTileLayer.setOptions({ fadeDuration: 0, opacity: options.tileLayerOptions[frameIdx].opacity });
+                        if (opt.tileLayerOptions && opt.tileLayerOptions.length > 0) {
+                            self._currentTileLayer.setOptions({ fadeDuration: 0, opacity: opt.tileLayerOptions[frameIdx].opacity });
                         }
                     }
                     else {
