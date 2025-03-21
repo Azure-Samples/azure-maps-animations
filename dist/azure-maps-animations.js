@@ -1352,6 +1352,9 @@ MIT License
                         animation.setNumberOfFrames(opt.tileLayerOptions.length);
                     }
                     var frameIdx = (animation) ? self._animation.getCurrentFrameIdx() : 0;
+                    if ((frameIdx == -1 || frameIdx > tileLayers.length)) {
+                        frameIdx = 0;
+                    }
                     if (frameIdx >= 0) {
                         self._currentTileLayer = tileLayers[frameIdx];
                         self._currentTileLayer.setOptions({ fadeDuration: 0, visible: true });
@@ -1359,17 +1362,9 @@ MIT License
                 }
                 if (typeof options.visible === 'boolean') {
                     opt.visible = options.visible;
-                    if (options.visible) {
-                        var frameIdx = animation.getCurrentFrameIdx();
-                        if (opt.tileLayerOptions && opt.tileLayerOptions.length > 0) {
-                            self._currentTileLayer.setOptions({ fadeDuration: 0, opacity: opt.tileLayerOptions[frameIdx].opacity });
-                        }
-                    }
-                    else {
-                        tileLayers.forEach(function (l) { return l.setOptions({
-                            opacity: 0
-                        }); });
-                    }
+                    tileLayers.forEach(function (l) { return l.setOptions({
+                        visible: options.visible
+                    }); });
                 }
             }
             if (animation) {

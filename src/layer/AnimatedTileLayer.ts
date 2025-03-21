@@ -170,7 +170,12 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
                     animation.setNumberOfFrames(opt.tileLayerOptions.length);
                 }
 
-                const frameIdx = (animation) ? self._animation.getCurrentFrameIdx() : 0;
+                let frameIdx = (animation) ? self._animation.getCurrentFrameIdx() : 0;
+
+                if((frameIdx == -1 || frameIdx > tileLayers.length)) {
+                    frameIdx = 0;
+                }
+
                 if (frameIdx >= 0) {
                     self._currentTileLayer = tileLayers[frameIdx];
                     self._currentTileLayer.setOptions({ fadeDuration: 0, visible: true });
@@ -180,16 +185,9 @@ export class AnimatedTileLayer extends azmaps.layer.Layer implements IPlayableAn
             if (typeof options.visible === 'boolean') {
                 opt.visible = options.visible;
 
-                if (options.visible) {
-                    let frameIdx = animation.getCurrentFrameIdx();
-                    if (opt.tileLayerOptions && opt.tileLayerOptions.length > 0) {
-                        self._currentTileLayer.setOptions({ fadeDuration: 0, opacity: opt.tileLayerOptions[frameIdx].opacity });
-                    }
-                } else {
-                    tileLayers.forEach(l => l.setOptions({
-                        opacity: 0
-                    }));
-                }
+                tileLayers.forEach(l => l.setOptions({
+                    visible: options.visible
+                }));
             }
         }
 
